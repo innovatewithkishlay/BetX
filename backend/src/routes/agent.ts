@@ -6,9 +6,9 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 const router = Router();
 
-// GET /api/agent/me
+// GET /api/agent/profile
 // Protected: returns current agent profile and updates lastLogin
-router.get('/me', verifyToken, agentGuard, async (req: AgentRequest, res: Response): Promise<void> => {
+router.get('/profile', verifyToken, agentGuard, async (req: AgentRequest, res: Response): Promise<void> => {
     const uid = req.agent!.uid;
 
     try {
@@ -32,6 +32,7 @@ router.get('/me', verifyToken, agentGuard, async (req: AgentRequest, res: Respon
                 email: data.email,
                 role: data.role,
                 status: data.status,
+                agentLimit: data.agentLimit || 0,
                 createdAt: data.createdAt,
                 lastLogin: new Date().toISOString(),
             },

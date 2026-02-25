@@ -65,7 +65,7 @@ const Icons = {
 };
 
 // ─── Dashboard Sidebar ───────────────────────────────
-function Sidebar({ activeModule, setActiveModule, collapsed }: { activeModule: string, setActiveModule: (m: string) => void, collapsed: boolean }) {
+function Sidebar({ activeModule, setActiveModule, collapsed, onClose }: { activeModule: string, setActiveModule: (m: string) => void, collapsed: boolean, onClose?: () => void }) {
     const sections = [
         {
             title: 'MASTER DETAILS',
@@ -91,7 +91,7 @@ function Sidebar({ activeModule, setActiveModule, collapsed }: { activeModule: s
     ];
 
     return (
-        <aside style={{
+        <aside className="dashboard-sidebar" style={{
             width: collapsed ? '80px' : '260px',
             background: 'var(--bg-card)',
             borderRight: '1px solid var(--border)',
@@ -128,7 +128,7 @@ function Sidebar({ activeModule, setActiveModule, collapsed }: { activeModule: s
                             {section.items.map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => setActiveModule(item.id)}
+                                    onClick={() => { setActiveModule(item.id); onClose?.(); }}
                                     title={collapsed ? item.label : ''}
                                     style={{
                                         display: 'flex',
@@ -266,41 +266,41 @@ function ClientMasterView({ profile }: { profile: AgentProfile | null }) {
 
     return (
         <div className="smooth-transition">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
                 <div>
                     <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0, letterSpacing: '-0.04em' }}>Client Master</h1>
                     <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Home / Client</div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     <button onClick={handleOpenCreate} style={{
-                        display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer'
+                        display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '11px', cursor: 'pointer'
                     }}>
                         <Icons.Plus /> New
                     </button>
-                    <button onClick={() => setFilterStatus('active')} style={{ padding: '10px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>All Active</button>
-                    <button onClick={() => setFilterStatus('inactive')} style={{ padding: '10px 16px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>All Deactive</button>
+                    <button onClick={() => setFilterStatus('active')} style={{ padding: '10px 12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>All Active</button>
+                    <button onClick={() => setFilterStatus('inactive')} style={{ padding: '10px 12px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '11px', cursor: 'pointer' }}>All Deactive</button>
                 </div>
             </header>
 
             {/* Controls */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', background: 'var(--bg-card)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)', flexWrap: 'wrap', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)', fontSize: '13px' }}>
                     Show <select style={{ padding: '4px 8px', borderRadius: '6px', background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border)' }}><option>50</option></select> entries
                 </div>
-                <div style={{ position: 'relative' }}>
+                <div style={{ position: 'relative', flex: '1', minWidth: '240px' }}>
                     <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', opacity: 0.5 }}><Icons.Search /></span>
                     <input
                         type="text"
                         placeholder="Search by Name, Code, or Mobile..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        style={{ padding: '10px 40px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '13px', minWidth: '240px' }}
+                        style={{ padding: '10px 40px', borderRadius: '8px', background: 'var(--bg-input)', border: '1px solid var(--border)', color: 'var(--text-primary)', fontSize: '13px', width: '100%', boxSizing: 'border-box' }}
                     />
                 </div>
             </div>
 
             {/* Table */}
-            <div style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', overflow: 'hidden', boxShadow: 'var(--card-shadow)' }}>
+            <div className="dashboard-table-wrapper" style={{ background: 'var(--bg-card)', borderRadius: '12px', border: '1px solid var(--border)', boxShadow: 'var(--card-shadow)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                     <thead style={{ background: 'rgba(148, 163, 184, 0.05)', borderBottom: '1px solid var(--border)' }}>
                         <tr>
@@ -450,7 +450,7 @@ function AgentProfileView({ profile }: { profile: AgentProfile | null }) {
             </header>
 
             <div style={{ maxWidth: '600px' }}>
-                <section style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '32px', boxShadow: 'var(--card-shadow)' }}>
+                <section className="profile-card" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '16px', padding: '32px', boxShadow: 'var(--card-shadow)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', paddingBottom: '32px', borderBottom: '1px solid var(--border)' }}>
                         <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(45deg, #3b82f6, #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 800 }}>👤</div>
                         <div>
@@ -506,6 +506,7 @@ function DashboardContent() {
     const [activeModule, setActiveModule] = useState('client_master');
     const [showDropdown, setShowDropdown] = useState(false);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
     useEffect(() => {
         const fetchProfile = async () => {
@@ -539,19 +540,69 @@ function DashboardContent() {
     const handleModuleSwitch = (mod: string) => {
         setActiveModule(mod);
         setShowDropdown(false);
+        setMobileSidebarOpen(false);
     };
 
     return (
         <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text-primary)', display: 'flex' }}>
-            <Sidebar activeModule={activeModule} setActiveModule={handleModuleSwitch} collapsed={sidebarCollapsed} />
+
+            {/* Mobile Overlay */}
+            {mobileSidebarOpen && (
+                <div
+                    onClick={() => setMobileSidebarOpen(false)}
+                    style={{
+                        position: 'fixed', inset: 0,
+                        background: 'rgba(0,0,0,0.5)',
+                        backdropFilter: 'blur(2px)',
+                        zIndex: 39,
+                    }}
+                />
+            )}
+
+            {/* Desktop Sidebar (hidden on mobile) */}
+            <div className="desktop-sidebar">
+                <Sidebar activeModule={activeModule} setActiveModule={handleModuleSwitch} collapsed={sidebarCollapsed} />
+            </div>
+
+            {/* Mobile Sidebar Drawer */}
+            <div className="mobile-sidebar-drawer" style={{
+                transform: mobileSidebarOpen ? 'translateX(0)' : 'translateX(-100%)',
+                transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                position: 'fixed', top: 0, left: 0, height: '100vh',
+                zIndex: 50,
+            }}>
+                <Sidebar activeModule={activeModule} setActiveModule={handleModuleSwitch} collapsed={false} onClose={() => setMobileSidebarOpen(false)} />
+            </div>
 
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column', width: 0 /* Allow flex child to shrink */ }}>
-                {/* Custom animations */}
+                {/* Custom animations + Mobile styles */}
                 <style dangerouslySetInnerHTML={{
                     __html: `
                     @keyframes fadeInScale {
                         from { opacity: 0; transform: scale(0.95) translateY(-10px); }
                         to { opacity: 1; transform: scale(1) translateY(0); }
+                    }
+                    .desktop-sidebar { display: flex; }
+                    .mobile-sidebar-drawer { display: none; }
+                    .mobile-only { display: none !important; }
+                    .hide-mobile { display: flex; }
+                    @media (max-width: 768px) {
+                        .desktop-sidebar { display: none !important; }
+                        .mobile-sidebar-drawer { display: block !important; }
+                        .mobile-only { display: flex !important; }
+                        .hide-mobile { display: none !important; }
+                        .dashboard-table-wrapper { 
+                            overflow-x: auto; 
+                            -webkit-overflow-scrolling: touch; 
+                            margin: 0 -16px; 
+                            padding: 0 16px;
+                            width: calc(100% + 32px);
+                            box-sizing: border-box;
+                        }
+                        .dashboard-main-padding { padding: 20px 16px !important; }
+                        .dashboard-nav-padding { padding: 0 16px !important; }
+                        .profile-card { padding: 20px !important; }
+                        .smooth-transition header { margin-bottom: 24px !important; }
                     }
                 ` }} />
 
@@ -570,7 +621,9 @@ function DashboardContent() {
                     zIndex: 20
                 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {/* Desktop collapse toggle */}
                         <button
+                            className="hide-mobile"
                             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
                             style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: '8px', cursor: 'pointer', borderRadius: '8px', transition: 'background 0.2s' }}
                             onMouseEnter={e => e.currentTarget.style.background = 'var(--border)'}
@@ -578,6 +631,16 @@ function DashboardContent() {
                         >
                             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                         </button>
+                        {/* Mobile hamburger */}
+                        <button
+                            className="mobile-only"
+                            onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', padding: '8px', cursor: 'pointer', borderRadius: '8px', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                        </button>
+                        {/* Mobile Logo */}
+                        <span className="mobile-only" style={{ fontWeight: 900, fontSize: '18px', color: 'var(--accent)', letterSpacing: '-0.04em', alignItems: 'center' }}>BetX</span>
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
@@ -652,7 +715,7 @@ function DashboardContent() {
                     </div>
                 </nav>
 
-                <main style={{ flex: 1, padding: '40px 32px' }}>
+                <main className="dashboard-main-padding" style={{ flex: 1, padding: '40px 32px' }}>
                     {activeModule === 'client_master' && <ClientMasterView profile={profile} />}
                     {activeModule === 'profile' && <AgentProfileView profile={profile} />}
                     {['collection_master', 'in_play', 'complete_game', 'live_casino', 'casino_details'].includes(activeModule) && (

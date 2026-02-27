@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import agentRoutes from './routes/agent';
 import clientRoutes from './routes/client';
+import adminRoutes from './routes/admin';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -43,6 +44,7 @@ const authLimiter = rateLimit({
 app.use('/api/agent/auth', authLimiter, authRoutes);
 app.use('/api/agent/clients', clientRoutes);
 app.use('/api/agent', agentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // ─── Health Check ─────────────────────────────────────
 app.get('/health', (_req, res) => {

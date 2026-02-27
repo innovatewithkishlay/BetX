@@ -534,7 +534,7 @@ function DashboardContent() {
 
     const handleLogout = async () => {
         await logout();
-        router.replace('/login');
+        router.replace('/agent/login');
     };
 
     const handleModuleSwitch = (mod: string) => {

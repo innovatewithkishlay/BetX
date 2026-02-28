@@ -21,6 +21,15 @@ interface AdminProfile {
     lastLogin?: string;
 }
 
+interface Match {
+    id: string;
+    name: string;
+    status: string;
+    startTime: { seconds: number; nanoseconds: number } | any;
+    series?: string;
+    managed?: boolean;
+}
+
 // ─── Sidebar Component ──────────────────────────────
 function AdminSidebar({ activeModule, setActiveModule, collapsed, isOpen, toggleSidebar, userRole }: {
     activeModule: string,
@@ -687,11 +696,18 @@ function InPlayManagement() {
     }, []);
 
     const filteredMatches = matches.filter(m => {
+        const status = m.status?.toLowerCase() || '';
         if (activeFilter === 'all') return true;
-        if (activeFilter === 'live') return m.status === 'Live' || !m.status.toLowerCase().includes('won');
-        if (activeFilter === 'finished') return m.status.toLowerCase().includes('won');
+        if (activeFilter === 'live') return status === 'live' || (!status.includes('won') && !status.includes('finished'));
+        if (activeFilter === 'finished') return status.includes('won') || status.includes('finished');
         return true;
     });
+
+    const formatTime = (startTime: any) => {
+        if (!startTime) return 'N/A';
+        const date = startTime.seconds ? new Date(startTime.seconds * 1000) : new Date(startTime);
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    };
 
     return (
         <div className="smooth-transition">
@@ -745,8 +761,8 @@ function InPlayManagement() {
                                         {m.status === 'Live' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></div>}
                                     </div>
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>
-                                        <span>{isFinished ? 'FINISHED' : 'IN-PLAY'}</span>
-                                        <span>{new Date(m.startTime?.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <span>{isFinished ? 'FINISHED' : (m.status === 'Live' ? 'LIVE' : 'IN-PLAY')}</span>
+                                        <span>{formatTime(m.startTime)}</span>
                                     </div>
                                 </div>
                             );

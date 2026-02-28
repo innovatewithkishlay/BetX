@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const API_KEY = process.env.CRICKET_API_KEY;
-const BASE_URL = 'https://api.cricketdata.org/v1';
+const BASE_URL = 'https://api.cricapi.com/v1';
 
 export const fetchCurrentMatches = async () => {
     try {
@@ -9,20 +9,31 @@ export const fetchCurrentMatches = async () => {
         const data = response.data;
 
         if (data.status !== 'success') {
-            throw new Error('Failed to fetch from Cricket API');
+            console.error('Cricket API Error Status:', data.status, data.reason || '');
+            throw new Error(`Cricket API failed: ${data.status}`);
         }
 
-        return data.data.map((match: any) => ({
-            id: match.id,
-            teamA: match.teams[0],
-            teamB: match.teams[1],
-            startTime: match.dateTimeGMT,
-            status: match.status,
-            score: match.score || [],
-            name: match.name
-        }));
-    } catch (error) {
-        console.error('Error in fetchCurrentMatches:', error);
+        if (!data.data || !Array.isArray(data.data)) {
+            return [];
+        }
+
+        return data.data.map((match: any) => {
+            const teams = match.teams || [];
+            return {
+                id: match.id,
+                teamA: teams[0] || 'TBA',
+                teamB: teams[1] || 'TBA',
+                startTime: match.dateTimeGMT,
+                status: match.status,
+                score: match.score || [],
+                name: match.name || 'Unknown Match'
+            };
+        });
+    } catch (error: any) {
+        console.error('Error in fetchCurrentMatches:', error.message);
+        if (error.response) {
+            console.error('API Response Error:', error.response.status, error.response.data);
+        }
         throw error;
     }
 };
@@ -33,12 +44,16 @@ export const fetchMatchDetails = async (matchId: string) => {
         const data = response.data;
 
         if (data.status !== 'success') {
-            throw new Error('Failed to fetch match details');
+            console.error('Cricket API Match Info Error:', data.status, data.reason || '');
+            throw new Error(`Failed to fetch match details: ${data.status}`);
         }
 
         return data.data;
-    } catch (error) {
-        console.error('Error in fetchMatchDetails:', error);
+    } catch (error: any) {
+        console.error('Error in fetchMatchDetails:', error.message);
+        if (error.response) {
+            console.error('API Response Error:', error.response.status, error.response.data);
+        }
         throw error;
     }
 };

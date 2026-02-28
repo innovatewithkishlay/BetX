@@ -23,7 +23,14 @@ interface Match {
 }
 
 // ─── Sidebar Component ──────────────────────────────
-function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose, userRole }: { activeModule: string, setActiveModule: (m: string) => void, collapsed: boolean, onClose?: () => void, userRole: string }) {
+function AdminSidebar({ activeModule, setActiveModule, collapsed, isOpen, toggleSidebar, userRole }: {
+    activeModule: string,
+    setActiveModule: (m: string) => void,
+    collapsed: boolean,
+    isOpen: boolean,
+    toggleSidebar: () => void,
+    userRole: string
+}) {
     const sections = [
         {
             title: 'MATCH MANAGEMENT',
@@ -35,9 +42,9 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose, userR
         },
         {
             title: 'SYSTEM MANAGEMENT',
-            roles: ['admin'], // Only for Super Admin
+            roles: ['admin'],
             items: [
-                { id: 'sub_admins', label: 'Sub-Admin Management', icon: <Icons.Plus /> }, // Using Plus for now, can swap later
+                { id: 'sub_admins', label: 'Sub-Admin Management', icon: <Icons.Plus /> },
             ]
         }
     ];
@@ -45,51 +52,51 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose, userR
     const filteredSections = sections.filter(s => !s.roles || s.roles.includes(userRole));
 
     return (
-        <aside className="dashboard-sidebar" style={{
-            width: collapsed ? '80px' : '260px',
-            background: 'var(--bg-card)',
-            borderRight: '1px solid var(--border)',
-            display: 'flex', flexDirection: 'column', height: '100vh', position: 'sticky', top: 0, zIndex: 40,
-            boxShadow: '4px 0 12px rgba(0,0,0,0.02)',
-            transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-        }}>
-            <div style={{ padding: collapsed ? '20px 0' : '20px 24px', borderBottom: '1px solid var(--border)', textAlign: 'center', overflow: 'hidden' }}>
-                <span onClick={() => setActiveModule('in_play')} style={{
-                    fontWeight: 900, fontSize: collapsed ? '14px' : '16px', color: 'var(--accent)', letterSpacing: '-0.04em', cursor: 'pointer', whiteSpace: 'nowrap'
-                }}>
-                    {collapsed ? 'BX' : 'BetX Admin'}
-                </span>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '24px 8px' : '24px 16px', overflowX: 'hidden' }}>
-                {filteredSections.map((section) => (
-                    <div key={section.title} style={{ marginBottom: '24px' }}>
-                        {!collapsed && <p style={{ fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px', paddingLeft: '16px' }}>{section.title}</p>}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                            {section.items.map((item) => (
-                                <button key={item.id} onClick={() => { setActiveModule(item.id); onClose?.(); }} title={collapsed ? item.label : ''} style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? '0' : '12px',
-                                    padding: collapsed ? '12px 0' : '10px 16px', borderRadius: '8px', border: 'none',
-                                    background: activeModule === item.id ? 'var(--accent)' : 'transparent',
-                                    color: activeModule === item.id ? 'white' : 'var(--text-secondary)',
-                                    fontSize: '12px', fontWeight: activeModule === item.id ? 700 : 500, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', width: '100%'
-                                }}>
-                                    <span style={{ opacity: activeModule === item.id ? 1 : 0.7, display: 'flex' }}>{item.icon}</span>
-                                    {!collapsed && <span>{item.label}</span>}
-                                </button>
-                            ))}
+        <>
+            {/* Mobile Overlay */}
+            {isOpen && <div className="sidebar-overlay" onClick={toggleSidebar} />}
+
+            <aside className={`dashboard-sidebar ${isOpen ? 'active' : ''} ${collapsed ? 'collapsed' : ''}`}>
+                <div style={{ padding: collapsed ? '20px 0' : '20px 24px', borderBottom: '1px solid var(--border)', textAlign: 'center', overflow: 'hidden' }}>
+                    <span onClick={() => { setActiveModule('in_play'); if (isOpen) toggleSidebar(); }} style={{
+                        fontWeight: 900, fontSize: collapsed ? '14px' : '16px', color: 'var(--accent)', letterSpacing: '-0.04em', cursor: 'pointer', whiteSpace: 'nowrap'
+                    }}>
+                        {collapsed ? 'BX' : 'BetX Admin'}
+                    </span>
+                </div>
+                <div style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '24px 8px' : '24px 16px', overflowX: 'hidden' }}>
+                    {filteredSections.map((section) => (
+                        <div key={section.title} style={{ marginBottom: '24px' }}>
+                            {!collapsed && <p style={{ fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px', paddingLeft: '16px' }}>{section.title}</p>}
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                                {section.items.map((item) => (
+                                    <button key={item.id} onClick={() => { setActiveModule(item.id); if (isOpen) toggleSidebar(); }} title={collapsed ? item.label : ''} style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: collapsed ? 'center' : 'flex-start', gap: collapsed ? '0' : '12px',
+                                        padding: collapsed ? '12px 0' : '10px 16px', borderRadius: '8px', border: 'none',
+                                        background: activeModule === item.id ? 'var(--accent)' : 'transparent',
+                                        color: activeModule === item.id ? 'white' : 'var(--text-secondary)',
+                                        fontSize: '12px', fontWeight: activeModule === item.id ? 700 : 500, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', width: '100%'
+                                    }}>
+                                        <span style={{ opacity: activeModule === item.id ? 1 : 0.7, display: 'flex' }}>{item.icon}</span>
+                                        {!collapsed && <span>{item.label}</span>}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
-            </div>
-        </aside>
+                    ))}
+                </div>
+            </aside>
+        </>
     );
 }
 
+// ─── Module: Live Match Discover ─────────────────────
 // ─── Module: Live Match Discover ─────────────────────
 function LiveMatchDiscover() {
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [importing, setImporting] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'finished'>('live');
 
     const fetchMatches = async () => {
         setLoading(true);
@@ -119,59 +126,109 @@ function LiveMatchDiscover() {
         }
     };
 
+    // Sophisticated match categorization logic
+    const categorized = {
+        live: matches.filter(m => m.status === 'Live'),
+        finished: matches.filter(m => {
+            const s = m.status?.toLowerCase() || '';
+            return s.includes('won by') || s.includes('tied') || s.includes('drawn') || s.includes('no result') || s.includes('result');
+        }),
+        upcoming: matches.filter(m => {
+            const s = m.status?.toLowerCase() || '';
+            const isLive = m.status === 'Live';
+            const isFinished = s.includes('won by') || s.includes('tied') || s.includes('drawn') || s.includes('no result') || s.includes('result');
+            return !isLive && !isFinished;
+        })
+    };
+
+    const currentMatches = categorized[activeTab];
+
     return (
         <div className="smooth-transition">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+            <header className="module-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
                 <div>
-                    <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Match Discovery</h1>
-                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Sync Live Games from API</div>
+                    <h1 style={{ fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>Match Discovery</h1>
+                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Categorized Live Games from API</div>
                 </div>
-                <button onClick={fetchMatches} style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '10px', cursor: 'pointer'
+                <button onClick={fetchMatches} className="btn-mobile-full" title="Sync with API" style={{
+                    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 18px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 700, fontSize: '12px', cursor: 'pointer', boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
                 }}>
-                    <Icons.Refresh /> Refresh List
+                    <Icons.Refresh /> Refresh
                 </button>
             </header>
 
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-                    <thead>
-                        <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
-                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Teams</th>
-                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
-                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Start Time</th>
-                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (
-                            Array(5).fill(0).map((_, i) => (
-                                <tr key={i}><td colSpan={4} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>Loading...</td></tr>
-                            ))
-                        ) : (
-                            matches.map((m) => (
-                                <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '12px 20px', fontWeight: 700 }}>{m.name}</td>
-                                    <td style={{ padding: '12px 20px' }}>
-                                        <span style={{ padding: '3px 6px', borderRadius: '4px', background: m.status === 'Live' ? '#ef4444' : '#3b82f6', color: 'white', fontSize: '9px', fontWeight: 800 }}>{m.status}</span>
-                                    </td>
-                                    <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{new Date(m.startTime).toLocaleString()}</td>
-                                    <td style={{ padding: '12px 20px', textAlign: 'right' }}>
-                                        <button
-                                            disabled={importing === m.id}
-                                            onClick={() => handleImport(m)}
-                                            style={{
-                                                padding: '6px 12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', opacity: importing === m.id ? 0.5 : 1
-                                            }}
-                                        >
-                                            {importing === m.id ? 'Importing...' : 'Import'}
-                                        </button>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
+            <div className="category-tabs">
+                <button onClick={() => setActiveTab('live')} className={`tab-btn ${activeTab === 'live' ? 'active' : ''}`}>
+                    Live {categorized.live.length > 0 && <span style={{ marginLeft: '4px', opacity: 0.7 }}>({categorized.live.length})</span>}
+                </button>
+                <button onClick={() => setActiveTab('upcoming')} className={`tab-btn ${activeTab === 'upcoming' ? 'active' : ''}`}>
+                    Upcoming {categorized.upcoming.length > 0 && <span style={{ marginLeft: '4px', opacity: 0.7 }}>({categorized.upcoming.length})</span>}
+                </button>
+                <button onClick={() => setActiveTab('finished')} className={`tab-btn ${activeTab === 'finished' ? 'active' : ''}`}>
+                    Finished {categorized.finished.length > 0 && <span style={{ marginLeft: '4px', opacity: 0.7 }}>({categorized.finished.length})</span>}
+                </button>
+            </div>
+
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '20px' }}>
+                {loading ? (
+                    Array(6).fill(0).map((_, i) => (
+                        <div key={i} className="match-card" style={{ opacity: 0.3, height: '180px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <div className="spinner"></div>
+                        </div>
+                    ))
+                ) : currentMatches.length === 0 ? (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '64px', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>No {activeTab} matches found at the moment.</p>
+                    </div>
+                ) : (
+                    currentMatches.map((m) => (
+                        <div key={m.id} className="match-card">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div style={{ flex: 1 }}>
+                                    {activeTab === 'live' ? (
+                                        <div className="live-pulse">LIVE</div>
+                                    ) : activeTab === 'finished' ? (
+                                        <div className="result-badge">FINISHED</div>
+                                    ) : (
+                                        <div className="upcoming-badge">UPCOMING</div>
+                                    )}
+                                </div>
+                                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '4px 8px', borderRadius: '6px' }}>
+                                    {new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                            </div>
+
+                            <div style={{ flex: 1 }}>
+                                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'white', lineHeight: '1.4', marginBottom: '8px' }}>
+                                    {m.name}
+                                </h3>
+                                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, margin: 0 }}>
+                                    {activeTab === 'finished' ? (
+                                        <span style={{ color: '#22c55e' }}>{m.status}</span>
+                                    ) : (
+                                        <span>Start: {new Date(m.startTime).toLocaleDateString()}</span>
+                                    )}
+                                </p>
+                            </div>
+
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+                                <button
+                                    disabled={importing === m.id}
+                                    onClick={() => handleImport(m)}
+                                    style={{
+                                        flex: 1, padding: '12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '10px',
+                                        fontWeight: 800, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', opacity: importing === m.id ? 0.5 : 1
+                                    }}
+                                >
+                                    {importing === m.id ? 'Importing...' : 'Quick Import'}
+                                </button>
+                                <button className="smooth-transition" style={{ padding: '12px', background: 'var(--bg-input)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer' }}>
+                                    <Icons.Refresh style={{ width: '16px', height: '16px' }} />
+                                </button>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );
@@ -253,7 +310,7 @@ function ManualMatchAdd({ onCreated }: { onCreated: () => void }) {
                         />
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                             <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>TEAM A</label>
                             <input
@@ -354,9 +411,9 @@ function SubAdminManagement() {
                 <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Create and manage staff accounts</div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px' }}>
                 {/* Create Form */}
-                <div>
+                <div style={{ minWidth: 0 }}>
                     <div className="card" style={{ padding: '24px' }}>
                         <h2 style={{ fontSize: '14px', fontWeight: 900, marginBottom: '20px' }}>CREATE NEW SUB-ADMIN</h2>
                         <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -424,33 +481,37 @@ function SubAdminManagement() {
                 </div>
 
                 {/* List Table */}
-                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
-                        <thead>
-                            <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
-                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Sub-Admin</th>
-                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Email</th>
-                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {loading ? (
-                                <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>Syncing Accounts...</td></tr>
-                            ) : subAdmins.length === 0 ? (
-                                <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>No sub-admins found</td></tr>
-                            ) : (
-                                subAdmins.map((sub: any) => (
-                                    <tr key={sub.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                        <td style={{ padding: '12px 20px', fontWeight: 700 }}>{sub.name}</td>
-                                        <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{sub.email}</td>
-                                        <td style={{ padding: '12px 20px' }}>
-                                            <span style={{ padding: '3px 8px', borderRadius: '4px', background: '#22c55e', color: 'white', fontSize: '8px', fontWeight: 900 }}>ACTIVE</span>
-                                        </td>
+                <div style={{ minWidth: 0 }}>
+                    <div className="card" style={{ padding: 0 }}>
+                        <div className="table-wrapper">
+                            <table style={{ minWidth: '500px', width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                                <thead>
+                                    <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
+                                        <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Sub-Admin</th>
+                                        <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Email</th>
+                                        <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
                                     </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                                </thead>
+                                <tbody>
+                                    {loading ? (
+                                        <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>Syncing Accounts...</td></tr>
+                                    ) : subAdmins.length === 0 ? (
+                                        <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>No sub-admins found</td></tr>
+                                    ) : (
+                                        subAdmins.map((sub: any) => (
+                                            <tr key={sub.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                                <td style={{ padding: '12px 20px', fontWeight: 700 }}>{sub.name}</td>
+                                                <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{sub.email}</td>
+                                                <td style={{ padding: '12px 20px' }}>
+                                                    <span style={{ padding: '3px 8px', borderRadius: '4px', background: '#22c55e', color: 'white', fontSize: '8px', fontWeight: 900 }}>ACTIVE</span>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -462,6 +523,7 @@ function InPlayManagement() {
     const [matches, setMatches] = useState<Match[]>([]);
     const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
     const [loading, setLoading] = useState(true);
+    const [activeFilter, setActiveFilter] = useState<'all' | 'live' | 'finished'>('all');
 
     useEffect(() => {
         const q = query(collection(db, 'matches'), orderBy('startTime', 'desc'));
@@ -473,42 +535,82 @@ function InPlayManagement() {
         return () => unsubscribe();
     }, []);
 
+    const filteredMatches = matches.filter(m => {
+        if (activeFilter === 'all') return true;
+        if (activeFilter === 'live') return m.status === 'Live' || !m.status.toLowerCase().includes('won');
+        if (activeFilter === 'finished') return m.status.toLowerCase().includes('won');
+        return true;
+    });
+
     return (
         <div className="smooth-transition">
             <header style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>In-Play Management</h1>
+                <h1 style={{ fontSize: '22px', fontWeight: 900, margin: 0 }}>In-Play Management</h1>
                 <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Manage Markets & Odds in Real-Time</div>
             </header>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px' }}>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px' }}>
                 {/* Match Selection Column */}
-                <div className="card" style={{ padding: 0 }}>
-                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 800, fontSize: '12px' }}>IMPORTED GAMES</div>
-                    <div style={{ overflowY: 'auto', maxHeight: '600px' }}>
-                        {loading && <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5 }}>Syncing with Firestore...</div>}
-                        {!loading && matches.length === 0 && <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5 }}>No matches imported yet</div>}
-                        {matches.map(m => (
-                            <div
-                                key={m.id}
-                                onClick={() => setSelectedMatch(m)}
+                <div className="card" style={{ padding: 0, display: 'flex', flexDirection: 'column', maxHeight: '700px' }}>
+                    <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border)', fontWeight: 800, fontSize: '12px', background: 'var(--bg-body)' }}>
+                        MANAGED GAMES
+                    </div>
+
+                    {/* Tiny inline filter tabs */}
+                    <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', background: 'var(--bg-card)' }}>
+                        {['all', 'live', 'finished'].map(f => (
+                            <button
+                                key={f}
+                                onClick={() => setActiveFilter(f as any)}
                                 style={{
-                                    padding: '16px 20px', borderBottom: '1px solid var(--border)', cursor: 'pointer',
-                                    background: selectedMatch?.id === m.id ? 'var(--bg-body)' : 'transparent',
-                                    transition: 'background 0.2s'
+                                    flex: 1, padding: '10px', fontSize: '10px', fontWeight: 800, border: 'none', background: activeFilter === f ? 'var(--bg-body)' : 'transparent',
+                                    color: activeFilter === f ? 'var(--accent)' : 'var(--text-muted)', cursor: 'pointer', borderBottom: activeFilter === f ? '2px solid var(--accent)' : 'none'
                                 }}
                             >
-                                <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: '4px' }}>{m.name}</div>
-                                <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: 600 }}>{m.status.toUpperCase()} • {new Date(m.startTime?.seconds * 1000).toLocaleTimeString()}</div>
-                            </div>
+                                {f.toUpperCase()}
+                            </button>
                         ))}
+                    </div>
+
+                    <div style={{ overflowY: 'auto', flex: 1 }}>
+                        {loading && <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5 }}>Syncing with Firestore...</div>}
+                        {!loading && filteredMatches.length === 0 && <div style={{ padding: '20px', textAlign: 'center', opacity: 0.5 }}>No matches found</div>}
+                        {filteredMatches.map(m => {
+                            const isFinished = m.status?.toLowerCase().includes('won');
+                            return (
+                                <div
+                                    key={m.id}
+                                    onClick={() => setSelectedMatch(m)}
+                                    className="smooth-transition"
+                                    style={{
+                                        padding: '16px 20px', borderBottom: '1px solid var(--border)', cursor: 'pointer',
+                                        background: selectedMatch?.id === m.id ? 'var(--bg-body)' : 'transparent',
+                                        borderLeft: selectedMatch?.id === m.id ? '4px solid var(--accent)' : '4px solid transparent',
+                                        opacity: isFinished ? 0.6 : 1
+                                    }}
+                                >
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+                                        <div style={{ fontSize: '13px', fontWeight: 800 }}>{m.name}</div>
+                                        {m.status === 'Live' && <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ef4444' }}></div>}
+                                    </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', fontWeight: 700 }}>
+                                        <span>{isFinished ? 'FINISHED' : 'IN-PLAY'}</span>
+                                        <span>{new Date(m.startTime?.seconds * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
 
                 {/* Market & Odds Column */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', minWidth: 0 }}>
                     {!selectedMatch ? (
-                        <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '200px', opacity: 0.5, fontStyle: 'italic' }}>
-                            Select a match to manage markets and odds
+                        <div className="card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '300px', opacity: 0.5, fontStyle: 'italic', textAlign: 'center', padding: '20px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+                                <Icons.Games style={{ width: '40px', height: '40px' }} />
+                                <span>Select a match from the left to manage markets and odds</span>
+                            </div>
                         </div>
                     ) : (
                         <MarketsAndOddsView matchId={selectedMatch.id} />
@@ -596,61 +698,63 @@ function MarketsAndOddsView({ matchId }: { matchId: string }) {
                 <button onClick={() => handleAddMarket('lambi')} style={{ padding: '5px 10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>+ Lambi</button>
             </div>
 
-            {markets.map(market => {
-                const status = getStatusStyle(market.status);
-                return (
-                    <div key={market.id} className="card" style={{ padding: '20px', position: 'relative', borderLeft: `3px solid ${status.bg}` }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                            <div>
-                                <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Market</span>
-                                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: 'var(--accent)' }}>{market.type.toUpperCase()}</h3>
+            <div className="responsive-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 1fr) 1fr', gap: '16px' }}>
+                {markets.map(market => {
+                    const status = getStatusStyle(market.status);
+                    return (
+                        <div key={market.id} className="card" style={{ padding: '20px', position: 'relative', borderLeft: `3px solid ${status.bg}` }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                <div>
+                                    <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Market</span>
+                                    <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: 'var(--accent)' }}>{market.type.toUpperCase()}</h3>
+                                </div>
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                    <span style={{ padding: '3px 8px', borderRadius: '20px', background: status.bg, color: 'white', fontSize: '9px', fontWeight: 900 }}>{status.label}</span>
+                                    {market.status !== 'closed' && (
+                                        <button
+                                            onClick={() => setAddingSelection(addingSelection === market.id ? null : market.id)}
+                                            style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
+                                        >
+                                            + Add Run
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                                <span style={{ padding: '3px 8px', borderRadius: '20px', background: status.bg, color: 'white', fontSize: '9px', fontWeight: 900 }}>{status.label}</span>
-                                {market.status !== 'closed' && (
+
+                            {addingSelection === market.id && (
+                                <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-body)', borderRadius: '8px', display: 'flex', gap: '12px' }}>
+                                    <input
+                                        placeholder="Outcome (e.g. 150 Runs)"
+                                        value={newSelection.name}
+                                        onChange={e => setNewSelection({ ...newSelection, name: e.target.value })}
+                                        style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
+                                    />
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        value={newSelection.odd}
+                                        onChange={e => setNewSelection({ ...newSelection, odd: Number(e.target.value) })}
+                                        style={{ width: '80px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
+                                    />
                                     <button
-                                        onClick={() => setAddingSelection(addingSelection === market.id ? null : market.id)}
-                                        style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
+                                        onClick={() => handleAddSelection(market.id)}
+                                        style={{ padding: '8px 16px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}
                                     >
-                                        + Add Run
+                                        Add
                                     </button>
-                                )}
-                            </div>
+                                </div>
+                            )}
+
+                            <SelectionsList
+                                matchId={matchId}
+                                marketId={market.id}
+                                marketStatus={market.status}
+                                onSettle={(winnerId) => handleSettle(market.id, winnerId)}
+                            />
                         </div>
-
-                        {addingSelection === market.id && (
-                            <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-body)', borderRadius: '8px', display: 'flex', gap: '12px' }}>
-                                <input
-                                    placeholder="Outcome (e.g. 150 Runs)"
-                                    value={newSelection.name}
-                                    onChange={e => setNewSelection({ ...newSelection, name: e.target.value })}
-                                    style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
-                                />
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={newSelection.odd}
-                                    onChange={e => setNewSelection({ ...newSelection, odd: Number(e.target.value) })}
-                                    style={{ width: '80px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
-                                />
-                                <button
-                                    onClick={() => handleAddSelection(market.id)}
-                                    style={{ padding: '8px 16px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}
-                                >
-                                    Add
-                                </button>
-                            </div>
-                        )}
-
-                        <SelectionsList
-                            matchId={matchId}
-                            marketId={market.id}
-                            marketStatus={market.status}
-                            onSettle={(winnerId) => handleSettle(market.id, winnerId)}
-                        />
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
         </>
     );
 }
@@ -743,12 +847,13 @@ function SelectionsList({ matchId, marketId, marketStatus, onSettle }: { matchId
         </div>
     );
 }
-
+// This closing div was misplaced and has been removed.
 // ─── Main Dashboard Page ────────────────────────────
 export default function AdminDashboard() {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeModule, setActiveModule] = useState('in_play');
 
     useEffect(() => {
@@ -762,21 +867,45 @@ export default function AdminDashboard() {
 
     return (
         <AuthGuard>
-            <div style={{ display: 'flex', background: 'var(--bg-body)', minHeight: '100vh', color: 'var(--text-primary)', position: 'relative' }}>
+            <div className="admin-layout-wrapper">
                 <AdminSidebar
                     activeModule={activeModule}
                     setActiveModule={setActiveModule}
                     collapsed={sidebarCollapsed}
+                    isOpen={sidebarOpen}
+                    toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
                     userRole={user.role || 'subadmin'}
                 />
 
-                <main style={{ flex: 1, minWidth: 0, padding: '32px 40px' }}>
+                <main className="dashboard-main">
                     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                            <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7" /></svg>
-                        </button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            {/* Mobile Toggle */}
+                            <button
+                                onClick={() => setSidebarOpen(!sidebarOpen)}
+                                className="smooth-transition"
+                                style={{
+                                    background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
+                                    display: 'flex', borderRadius: '8px', border: '1px solid var(--border)',
+                                    zIndex: 50
+                                }}
+                            >
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7" /></svg>
+                            </button>
+                            {/* Desktop Toggle */}
+                            <button
+                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                                className="smooth-transition hide-mobile"
+                                style={{
+                                    background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
+                                    display: 'none', borderRadius: '8px', border: '1px solid var(--border)'
+                                }}
+                            >
+                                <Icons.Refresh />
+                            </button>
+                        </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ textAlign: 'right' }}>
+                            <div style={{ textAlign: 'right' }} className="hide-mobile">
                                 <p style={{ margin: 0, fontSize: '12px', fontWeight: 800 }}>{(user.email || 'Admin').split('@')[0].toUpperCase()}</p>
                                 <p style={{ margin: 0, fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>Administrator</p>
                             </div>
@@ -794,6 +923,15 @@ export default function AdminDashboard() {
                     </div>
                 </main>
             </div>
+
+            <style jsx>{`
+                @media (min-width: 1025px) {
+                    .hide-mobile { display: block !important; }
+                }
+                @media (max-width: 1024px) {
+                    .hide-mobile { display: none !important; }
+                }
+            `}</style>
         </AuthGuard>
     );
 }

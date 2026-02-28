@@ -45,6 +45,48 @@ router.get('/system/subadmins', verifyToken, superAdminGuard, async (req: AdminR
 });
 
 /**
+ * @route   GET /api/admin/system/agents
+ * @desc    List all agents (Admin only)
+ * @access  Admin
+ */
+router.get('/system/agents', verifyToken, adminGuard, async (req: AdminRequest, res: Response): Promise<void> => {
+    try {
+        const snapshot = await db.collection('users')
+            .where('role', '==', 'agent')
+            .get();
+
+        const agents = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        res.status(200).json({ success: true, data: agents });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
+ * @route   GET /api/admin/system/clients
+ * @desc    List all clients across all agents (Admin only)
+ * @access  Admin
+ */
+router.get('/system/clients', verifyToken, adminGuard, async (req: AdminRequest, res: Response): Promise<void> => {
+    try {
+        const snapshot = await db.collection('clients').get();
+
+        const clients = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        res.status(200).json({ success: true, data: clients });
+    } catch (error: any) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+/**
  * @route   POST /api/admin/auth/verify
  * @desc    Secondary verification to ensure the user has the admin role
  * @access  Admin

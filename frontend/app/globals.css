@@ -30,7 +30,28 @@
   --main-padding: 32px 40px;
 }
 
-/* ... existing root:light ... */
+[data-theme='light'] {
+  --bg: #f8fafc;
+  --bg-card: #ffffff;
+  --bg-input: #f1f5f9;
+  --border: rgba(226, 232, 240, 0.8);
+  --border-input: #e2e8f0;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --error-bg: #fef2f2;
+  --error-border: #fca5a5;
+  --error-text: #b91c1c;
+  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --bg-gradient: #f8fafc;
+  --nav-bg: rgba(255, 255, 255, 0.8);
+  --stat-bg: #ffffff;
+  --profile-bg: #f1f5f9;
+  --info-bg: #ffffff;
+  --accent: #4f46e5;
+  --bg-body: #f1f5f9;
+}
 
 @media (max-width: 1024px) {
   :root {

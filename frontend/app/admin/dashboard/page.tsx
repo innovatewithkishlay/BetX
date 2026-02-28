@@ -43,6 +43,8 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, isOpen, toggle
             title: 'SYSTEM MANAGEMENT',
             roles: ['admin'],
             items: [
+                { id: 'agents', label: 'Agent Management', icon: <Icons.User /> },
+                { id: 'clients', label: 'Client Management', icon: <Icons.User /> },
                 { id: 'sub_admins', label: 'Sub-Admin Management', icon: <Icons.Plus /> },
             ]
         }
@@ -383,6 +385,132 @@ function ManualMatchAdd({ onCreated }: { onCreated: () => void }) {
                         {loading ? 'Creating...' : 'Create Match'}
                     </button>
                 </form>
+            </div>
+        </div>
+    );
+}
+
+// ─── Module: Agent Management ────────────────────────
+function AgentManagement() {
+    const [agents, setAgents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchAgents = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/api/admin/system/agents');
+            if (res.data.success) setAgents(res.data.data);
+        } catch (err) {
+            console.error('Fetch agents failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchAgents(); }, []);
+
+    return (
+        <div className="smooth-transition">
+            <header style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Agent Management</h1>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Overview of all registered agents</div>
+            </header>
+
+            <div className="card" style={{ padding: 0 }}>
+                <div className="table-wrapper">
+                    <table style={{ minWidth: '600px', width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                        <thead>
+                            <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Agent</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Email</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', opacity: 0.3 }}><div className="spinner" style={{ margin: '0 auto' }}></div></td></tr>
+                            ) : agents.length === 0 ? (
+                                <tr><td colSpan={4} style={{ padding: '40px', textAlign: 'center', opacity: 0.3 }}>No agents found</td></tr>
+                            ) : (
+                                agents.map((agent: any) => (
+                                    <tr key={agent.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '12px 20px', fontWeight: 700 }}>{agent.name || agent.displayName || 'Unnamed Agent'}</td>
+                                        <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{agent.email}</td>
+                                        <td style={{ padding: '12px 20px' }}>
+                                            <span style={{ padding: '3px 8px', borderRadius: '4px', background: agent.status === 'active' ? '#22c55e' : '#64748b', color: 'white', fontSize: '8px', fontWeight: 900 }}>{agent.status?.toUpperCase() || 'ACTIVE'}</span>
+                                        </td>
+                                        <td style={{ padding: '12px 20px', color: 'var(--text-muted)' }}>{agent.createdAt ? new Date(agent.createdAt).toLocaleDateString() : '—'}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ─── Module: Client Management ───────────────────────
+function ClientManagement() {
+    const [clients, setClients] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchClients = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/api/admin/system/clients');
+            if (res.data.success) setClients(res.data.data);
+        } catch (err) {
+            console.error('Fetch clients failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchClients(); }, []);
+
+    return (
+        <div className="smooth-transition">
+            <header style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Global Client List</h1>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>All clients managed by agents across the system</div>
+            </header>
+
+            <div className="card" style={{ padding: 0 }}>
+                <div className="table-wrapper">
+                    <table style={{ minWidth: '600px', width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                        <thead>
+                            <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Client Code</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Name</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Mobile</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Limit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', opacity: 0.3 }}><div className="spinner" style={{ margin: '0 auto' }}></div></td></tr>
+                            ) : clients.length === 0 ? (
+                                <tr><td colSpan={5} style={{ padding: '40px', textAlign: 'center', opacity: 0.3 }}>No clients found in system</td></tr>
+                            ) : (
+                                clients.map((client: any) => (
+                                    <tr key={client.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '12px 20px', fontWeight: 900, color: 'var(--accent)' }}>{client.code}</td>
+                                        <td style={{ padding: '12px 20px', fontWeight: 700 }}>{client.name}</td>
+                                        <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{client.mobile}</td>
+                                        <td style={{ padding: '12px 20px' }}>
+                                            <span style={{ padding: '3px 8px', borderRadius: '4px', background: client.status === 'active' ? '#22c55e' : '#64748b', color: 'white', fontSize: '8px', fontWeight: 900 }}>{client.status?.toUpperCase()}</span>
+                                        </td>
+                                        <td style={{ padding: '12px 20px', fontWeight: 700 }}>{client.clientLimit}</td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
@@ -1110,6 +1238,8 @@ export default function AdminDashboard() {
                         {activeModule === 'live_discover' && <LiveMatchDiscover />}
                         {activeModule === 'manual_add' && <ManualMatchAdd onCreated={() => handleModuleSwitch('in_play')} />}
                         {activeModule === 'in_play' && <InPlayManagement />}
+                        {activeModule === 'agents' && <AgentManagement />}
+                        {activeModule === 'clients' && <ClientManagement />}
                         {activeModule === 'sub_admins' && <SubAdminManagement />}
                     </div>
                 </main>

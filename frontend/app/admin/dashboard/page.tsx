@@ -90,8 +90,7 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, isOpen, toggle
     );
 }
 
-// ─── Module: Live Match Discover ─────────────────────
-// ─── Module: Live Match Discover ─────────────────────
+// ─── Module: Live Match Discovery ─────────────────────
 function LiveMatchDiscover() {
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

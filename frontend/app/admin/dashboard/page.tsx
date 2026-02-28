@@ -1137,34 +1137,33 @@ export default function AdminDashboard() {
 
                 <main className="dashboard-main">
                     <header className="dashboard-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px', height: '70px', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 30 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {/* Mobile Toggle */}
                             <button
-                                onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="smooth-transition sidebar-toggle-btn"
-                                style={{
-                                    background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
-                                    display: 'flex', borderRadius: '8px', border: '1px solid var(--border)',
-                                    zIndex: 50
-                                }}
+                                onClick={() => setSidebarOpen(true)}
+                                className="sidebar-toggle-btn mobile-only"
+                                title="Open Sidebar"
                             >
                                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7" /></svg>
                             </button>
+
                             {/* Desktop Toggle */}
                             <button
                                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="smooth-transition hide-mobile collapse-btn"
+                                className="collapse-btn hide-mobile"
+                                title={sidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
                                 style={{
                                     background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
-                                    borderRadius: '8px', border: '1px solid var(--border)'
+                                    borderRadius: '8px', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center'
                                 }}
                             >
                                 <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                             </button>
-                            <div className="nav-breadcrumb hide-mobile" style={{ fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <span style={{ opacity: 0.5 }}>Admin</span>
+
+                            <div className="nav-breadcrumb hide-mobile" style={{ marginLeft: '12px', fontSize: '13px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                                <span style={{ opacity: 0.6 }}>Admin</span>
                                 <span style={{ opacity: 0.3 }}>/</span>
-                                <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{activeModule.replace('_', ' ')}</span>
+                                <span style={{ color: 'var(--accent)', textTransform: 'capitalize' }}>{activeModule.replace('_', ' ')}</span>
                             </div>
                         </div>
 
@@ -1256,11 +1255,15 @@ export default function AdminDashboard() {
                         to { opacity: 1; transform: scale(1) translateY(0); }
                     }
 
+                    .mobile-only { display: none; }
+                    .hide-mobile { display: block; }
+                    
                     @media (max-width: 768px) {
                         .dashboard-main { margin-left: 0 !important; }
-                        .sidebar-toggle-btn { display: block; }
-                        .collapse-btn { display: none; }
-                        .hide-mobile { display: none; }
+                        .sidebar-toggle-btn { display: flex !important; align-items: center; justify-content: center; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 8px; }
+                        .collapse-btn { display: none !important; }
+                        .hide-mobile { display: none !important; }
+                        .mobile-only { display: block !important; }
                         .dashboard-nav { padding: 0 16px !important; }
                         .module-container { padding: 20px 16px !important; }
                     }

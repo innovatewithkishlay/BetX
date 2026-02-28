@@ -95,16 +95,23 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, isOpen, toggle
 function LiveMatchDiscover() {
     const [matches, setMatches] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [importing, setImporting] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'finished'>('live');
+    const [activeTab, setActiveTab] = useState<'all' | 'live' | 'upcoming' | 'finished'>('all');
 
     const fetchMatches = async () => {
         setLoading(true);
+        setError(null);
         try {
             const res = await api.get('/api/admin/cricket/matches');
-            if (res.data.success) setMatches(res.data.data);
-        } catch (err) {
+            if (res.data.success) {
+                setMatches(res.data.data);
+            } else {
+                setError(res.data.message || 'Failed to fetch matches from server');
+            }
+        } catch (err: any) {
             console.error('Fetch live matches failed');
+            setError(err.code === 'ECONNABORTED' ? 'Request timed out. The server or API is too slow.' : 'Network error or server is down.');
         } finally {
             setLoading(false);
         }
@@ -128,17 +135,10 @@ function LiveMatchDiscover() {
 
     // Sophisticated match categorization logic
     const categorized = {
-        live: matches.filter(m => m.status === 'Live'),
-        finished: matches.filter(m => {
-            const s = m.status?.toLowerCase() || '';
-            return s.includes('won by') || s.includes('tied') || s.includes('drawn') || s.includes('no result') || s.includes('result');
-        }),
-        upcoming: matches.filter(m => {
-            const s = m.status?.toLowerCase() || '';
-            const isLive = m.status === 'Live';
-            const isFinished = s.includes('won by') || s.includes('tied') || s.includes('drawn') || s.includes('no result') || s.includes('result');
-            return !isLive && !isFinished;
-        })
+        all: matches,
+        live: matches.filter(m => m.matchStarted && !m.matchEnded),
+        finished: matches.filter(m => m.matchEnded || (m.status && (m.status.toLowerCase().includes('won by') || m.status.toLowerCase().includes('tied') || m.status.toLowerCase().includes('drawn') || m.status.toLowerCase().includes('result')))),
+        upcoming: matches.filter(m => !m.matchStarted && !m.matchEnded)
     };
 
     const currentMatches = categorized[activeTab];
@@ -158,6 +158,9 @@ function LiveMatchDiscover() {
             </header>
 
             <div className="category-tabs">
+                <button onClick={() => setActiveTab('all')} className={`tab-btn ${activeTab === 'all' ? 'active' : ''}`}>
+                    All <span style={{ marginLeft: '4px', opacity: 0.7 }}>({categorized.all.length})</span>
+                </button>
                 <button onClick={() => setActiveTab('live')} className={`tab-btn ${activeTab === 'live' ? 'active' : ''}`}>
                     Live {categorized.live.length > 0 && <span style={{ marginLeft: '4px', opacity: 0.7 }}>({categorized.live.length})</span>}
                 </button>
@@ -176,58 +179,80 @@ function LiveMatchDiscover() {
                             <div className="spinner"></div>
                         </div>
                     ))
+                ) : error ? (
+                    <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '48px', background: 'rgba(239, 68, 68, 0.05)', borderRadius: '16px', border: '1px solid rgba(239, 68, 68, 0.1)', color: '#ef4444' }}>
+                        <div style={{ fontSize: '32px', marginBottom: '16px' }}>⚠️</div>
+                        <p style={{ margin: 0, fontSize: '14px', fontWeight: 800 }}>{error}</p>
+                        <button onClick={fetchMatches} style={{ marginTop: '20px', padding: '10px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '12px', cursor: 'pointer' }}>Try Again</button>
+                    </div>
                 ) : currentMatches.length === 0 ? (
                     <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '64px', background: 'var(--bg-card)', borderRadius: '16px', border: '1px dashed var(--border)', color: 'var(--text-muted)' }}>
                         <p style={{ margin: 0, fontSize: '14px', fontWeight: 600 }}>No {activeTab} matches found at the moment.</p>
                     </div>
                 ) : (
-                    currentMatches.map((m) => (
-                        <div key={m.id} className="match-card">
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                                <div style={{ flex: 1 }}>
-                                    {activeTab === 'live' ? (
-                                        <div className="live-pulse">LIVE</div>
-                                    ) : activeTab === 'finished' ? (
-                                        <div className="result-badge">FINISHED</div>
-                                    ) : (
-                                        <div className="upcoming-badge">UPCOMING</div>
-                                    )}
-                                </div>
-                                <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', background: 'var(--bg-body)', padding: '4px 8px', borderRadius: '6px' }}>
-                                    {new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </div>
-                            </div>
+                    currentMatches.map((m) => {
+                        const isLive = m.matchStarted && !m.matchEnded;
+                        const isFinished = m.matchEnded || (m.status && (m.status.toLowerCase().includes('won by') || m.status.toLowerCase().includes('tied') || m.status.toLowerCase().includes('drawn') || m.status.toLowerCase().includes('result')));
+                        const isUpcoming = !m.matchStarted && !m.matchEnded && !isFinished;
 
-                            <div style={{ flex: 1 }}>
-                                <h3 style={{ fontSize: '15px', fontWeight: 900, color: 'white', lineHeight: '1.4', marginBottom: '8px' }}>
-                                    {m.name}
-                                </h3>
-                                <p style={{ fontSize: '11px', color: 'var(--text-secondary)', fontWeight: 600, margin: 0 }}>
-                                    {activeTab === 'finished' ? (
-                                        <span style={{ color: '#22c55e' }}>{m.status}</span>
-                                    ) : (
-                                        <span>Start: {new Date(m.startTime).toLocaleDateString()}</span>
-                                    )}
-                                </p>
-                            </div>
+                        return (
+                            <div key={m.id} className="match-card">
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <div style={{ flex: 1 }}>
+                                        {isLive ? (
+                                            <div className="live-pulse">LIVE</div>
+                                        ) : isFinished ? (
+                                            <div className="result-badge">FINISHED</div>
+                                        ) : (
+                                            <div className="upcoming-badge">UPCOMING</div>
+                                        )}
+                                    </div>
+                                    <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', background: 'var(--bg-input)', padding: '5px 10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                                        {new Date(m.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </div>
+                                </div>
 
-                            <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
-                                <button
-                                    disabled={importing === m.id}
-                                    onClick={() => handleImport(m)}
-                                    style={{
-                                        flex: 1, padding: '12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '10px',
-                                        fontWeight: 800, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', opacity: importing === m.id ? 0.5 : 1
-                                    }}
-                                >
-                                    {importing === m.id ? 'Importing...' : 'Quick Import'}
-                                </button>
-                                <button className="smooth-transition" style={{ padding: '12px', background: 'var(--bg-input)', color: 'var(--text-secondary)', border: '1px solid var(--border)', borderRadius: '10px', cursor: 'pointer' }}>
-                                    <Icons.Refresh style={{ width: '16px', height: '16px' }} />
-                                </button>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <h3 style={{ fontSize: '16px', fontWeight: 900, color: 'white', lineHeight: '1.3', margin: 0, letterSpacing: '-0.01em' }}>
+                                        {m.name}
+                                    </h3>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: isFinished ? '#22c55e' : 'var(--accent)' }}></div>
+                                        <p style={{ fontSize: '11px', color: isFinished ? '#22c55e' : 'var(--text-secondary)', fontWeight: 700, margin: 0 }}>
+                                            {isFinished ? m.status : `Starts ${new Date(m.startTime).toLocaleDateString()}`}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {!isFinished && (
+                                    <div style={{ display: 'flex', gap: '10px', marginTop: 'auto', paddingTop: '8px' }}>
+                                        <button
+                                            disabled={importing === m.id}
+                                            onClick={() => handleImport(m)}
+                                            style={{
+                                                flex: 1, padding: '12px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '12px',
+                                                fontWeight: 800, fontSize: '12px', cursor: 'pointer', transition: 'all 0.2s', overflow: 'hidden', position: 'relative',
+                                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.2)'
+                                            }}
+                                        >
+                                            {importing === m.id ? (
+                                                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                                                    <div className="spinner" style={{ width: '12px', height: '12px', borderWidth: '2px' }}></div>
+                                                    Importing
+                                                </div>
+                                            ) : 'Quick Import'}
+                                        </button>
+                                        <button className="smooth-transition" style={{
+                                            padding: '12px', background: 'var(--bg-input)', color: 'var(--text-secondary)', border: '1px solid var(--border)',
+                                            borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'
+                                        }}>
+                                            <Icons.Refresh style={{ width: '16px', height: '16px' }} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
-                        </div>
-                    ))
+                        );
+                    })
                 )}
             </div>
         </div>

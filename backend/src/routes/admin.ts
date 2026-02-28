@@ -4,6 +4,9 @@ import { adminGuard, superAdminGuard, AdminRequest } from '../middleware/adminGu
 import { fetchCurrentMatches } from '../services/cricketService';
 import { importMatch, createManualMatch, addMarketToMatch, addSelectionToMarket, settleMarket, updateOdd } from '../services/adminService';
 import { createSubAdmin, listSubAdmins } from '../services/subAdminService';
+import { db } from '../config/firebase';
+import { FieldValue } from 'firebase-admin/firestore';
+
 
 const router = Router();
 
@@ -59,6 +62,45 @@ router.post('/auth/verify', verifyToken, adminGuard, (req: AdminRequest, res: Re
             status: admin.status,
         },
     });
+});
+
+/**
+ * @route   GET /api/admin/profile
+ * @desc    Get current admin profile details
+ * @access  Admin
+ */
+router.get('/profile', verifyToken, adminGuard, async (req: AdminRequest, res: Response): Promise<void> => {
+    const uid = req.admin!.uid;
+
+    try {
+        const userRef = db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            res.status(404).json({ success: false, message: 'Admin profile not found' });
+            return;
+        }
+
+        // Update lastLogin timestamp
+        await userRef.update({ lastLogin: FieldValue.serverTimestamp() });
+
+        const data = userDoc.data()!;
+
+        res.status(200).json({
+            success: true,
+            data: {
+                uid,
+                email: data.email,
+                role: data.role,
+                status: data.status,
+                createdAt: data.createdAt,
+                lastLogin: new Date().toISOString(),
+            },
+        });
+    } catch (err) {
+        console.error('[ROUTE] Admin Profile Error:', err);
+        res.status(500).json({ success: false, message: 'Failed to fetch admin profile' });
+    }
 });
 
 /**

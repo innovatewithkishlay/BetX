@@ -12,14 +12,13 @@ import { collection, query, onSnapshot, doc, updateDoc, serverTimestamp, orderBy
 import { useAdminOdds } from '@/hooks/useAdminOdds';
 
 // ─── Types ───────────────────────────────────────────
-interface Match {
-    id: string;
-    name: string;
-    teamA: string;
-    teamB: string;
-    startTime: any;
+interface AdminProfile {
+    uid: string;
+    email: string;
+    role: string;
     status: string;
-    score?: any;
+    createdAt?: string;
+    lastLogin?: string;
 }
 
 // ─── Sidebar Component ──────────────────────────────
@@ -871,14 +870,86 @@ function SelectionsList({ matchId, marketId, marketStatus, onSettle }: { matchId
         </div>
     );
 }
-// This closing div was misplaced and has been removed.
+
+// ─── Admin Profile View ──────────────────────────────
+function AdminProfileView({ profile }: { profile: AdminProfile | null }) {
+    if (!profile) return <div style={{ color: 'var(--text-muted)', padding: '40px', textAlign: 'center' }}>Loading profile details...</div>;
+
+    const detailRowStyle: React.CSSProperties = {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '16px 0',
+        borderBottom: '1px solid var(--border)',
+    };
+
+    const labelStyle: React.CSSProperties = {
+        fontSize: '12px',
+        color: 'var(--text-secondary)',
+        fontWeight: 500
+    };
+
+    const valueStyle: React.CSSProperties = {
+        fontSize: '13px',
+        fontWeight: 700,
+        color: 'var(--text-primary)'
+    };
+
+    return (
+        <div className="smooth-transition">
+            <header style={{ marginBottom: '32px' }}>
+                <h1 style={{ fontSize: '20px', fontWeight: 900, margin: 0, letterSpacing: '-0.02em' }}>Admin Profile</h1>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>System Governance / Identity</div>
+            </header>
+
+            <div style={{ maxWidth: '600px' }}>
+                <section className="match-card" style={{ padding: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', paddingBottom: '32px', borderBottom: '1px solid var(--border)' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--accent), #6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontSize: '20px', fontWeight: 800 }}>👤</div>
+                        <div>
+                            <h2 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>{profile.email}</h2>
+                            <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{profile.role.replace('_', ' ')}</span>
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div style={detailRowStyle}>
+                            <span style={labelStyle}>User Identifier</span>
+                            <span style={valueStyle}>{profile.uid}</span>
+                        </div>
+                        <div style={detailRowStyle}>
+                            <span style={labelStyle}>Access Status</span>
+                            <span style={{ ...valueStyle, color: '#22c55e', textTransform: 'uppercase' }}>{profile.status}</span>
+                        </div>
+                        <div style={detailRowStyle}>
+                            <span style={labelStyle}>Creation Date</span>
+                            <span style={valueStyle}>{profile.createdAt ? new Date(profile.createdAt).toLocaleDateString() : 'Active System Account'}</span>
+                        </div>
+                        <div style={detailRowStyle}>
+                            <span style={labelStyle}>Recent Authorization</span>
+                            <span style={valueStyle}>{profile.lastLogin ? new Date(profile.lastLogin).toLocaleString() : 'Just now'}</span>
+                        </div>
+                    </div>
+
+                    <button disabled style={{ marginTop: '32px', width: '100%', height: '42px', border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-secondary)', borderRadius: '12px', fontWeight: 700, fontSize: '13px', cursor: 'not-allowed', opacity: 0.5 }}>
+                        Edit Master Profile (Restricted)
+                    </button>
+                </section>
+            </div>
+        </div>
+    );
+}
+
 // ─── Main Dashboard Page ────────────────────────────
 export default function AdminDashboard() {
-    const { user, loading: authLoading } = useAuth();
+    const { user, loading: authLoading, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const router = useRouter();
+
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeModule, setActiveModule] = useState('in_play');
+    const [profile, setProfile] = useState<AdminProfile | null>(null);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     useEffect(() => {
         const allowedRoles = ['admin', 'subadmin'];
@@ -887,6 +958,41 @@ export default function AdminDashboard() {
         }
     }, [user, authLoading, router]);
 
+    useEffect(() => {
+        const fetchProfile = async () => {
+            try {
+                const res = await api.get('/api/admin/profile');
+                if (res.data.success) setProfile(res.data.data);
+            } catch (err) {
+                console.error('Profile fetch failed');
+            }
+        };
+        if (user) fetchProfile();
+    }, [user]);
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleOutsideClick = (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            if (showDropdown && !target.closest('.profile-container')) {
+                setShowDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleOutsideClick);
+        return () => document.removeEventListener('mousedown', handleOutsideClick);
+    }, [showDropdown]);
+
+    const handleLogout = async () => {
+        await logout();
+        router.replace('/admin/login');
+    };
+
+    const handleModuleSwitch = (mod: string) => {
+        setActiveModule(mod);
+        setShowDropdown(false);
+        setSidebarOpen(false);
+    };
+
     if (authLoading || !user) return <div className="loading-container"><div className="spinner"></div></div>;
 
     return (
@@ -894,20 +1000,20 @@ export default function AdminDashboard() {
             <div className="admin-layout-wrapper">
                 <AdminSidebar
                     activeModule={activeModule}
-                    setActiveModule={setActiveModule}
+                    setActiveModule={handleModuleSwitch}
                     collapsed={sidebarCollapsed}
                     isOpen={sidebarOpen}
                     toggleSidebar={() => setSidebarOpen(!sidebarOpen)}
-                    userRole={user.role || 'subadmin'}
+                    userRole={profile?.role || user.role || 'subadmin'}
                 />
 
                 <main className="dashboard-main">
-                    <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <header className="dashboard-nav" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 32px', height: '70px', background: 'var(--nav-bg)', borderBottom: '1px solid var(--border)', backdropFilter: 'blur(12px)', position: 'sticky', top: 0, zIndex: 30 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             {/* Mobile Toggle */}
                             <button
                                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                                className="smooth-transition"
+                                className="smooth-transition sidebar-toggle-btn"
                                 style={{
                                     background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
                                     display: 'flex', borderRadius: '8px', border: '1px solid var(--border)',
@@ -919,43 +1025,117 @@ export default function AdminDashboard() {
                             {/* Desktop Toggle */}
                             <button
                                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                                className="smooth-transition hide-mobile"
+                                className="smooth-transition hide-mobile collapse-btn"
                                 style={{
                                     background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)',
-                                    display: 'none', borderRadius: '8px', border: '1px solid var(--border)'
+                                    borderRadius: '8px', border: '1px solid var(--border)'
                                 }}
                             >
-                                <Icons.Refresh />
+                                <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                             </button>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                            <div style={{ textAlign: 'right' }} className="hide-mobile">
-                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 800 }}>{(user.email || 'Admin').split('@')[0].toUpperCase()}</p>
-                                <p style={{ margin: 0, fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>Administrator</p>
+                            <div className="nav-breadcrumb hide-mobile" style={{ fontSize: '13px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <span style={{ opacity: 0.5 }}>Admin</span>
+                                <span style={{ opacity: 0.3 }}>/</span>
+                                <span style={{ fontWeight: 700, textTransform: 'capitalize' }}>{activeModule.replace('_', ' ')}</span>
                             </div>
-                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '14px' }}>
-                                {(user.email?.[0] || 'A').toUpperCase()}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <div className="profile-container" style={{ position: 'relative' }}>
+                                <div
+                                    onClick={() => setShowDropdown(!showDropdown)}
+                                    style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}
+                                >
+                                    <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }} className="hide-mobile">
+                                        <p style={{ margin: 0, fontSize: '12px', fontWeight: 800, textTransform: 'uppercase' }}>{profile?.role || user.role || 'ADMIN'}</p>
+                                        <p style={{ margin: 0, fontSize: '10px', color: '#22c55e', fontWeight: 700 }}>Root Connected</p>
+                                    </div>
+                                    <div style={{
+                                        width: '40px', height: '40px', borderRadius: '12px',
+                                        background: showDropdown ? 'var(--accent)' : 'linear-gradient(45deg, var(--accent), #6366f1)',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800,
+                                        boxShadow: showDropdown ? '0 0 0 2px var(--bg), 0 0 0 4px var(--accent)' : 'none',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)'
+                                    }}>👤</div>
+                                </div>
+
+                                {showDropdown && (
+                                    <div className="profile-dropdown" style={{
+                                        position: 'absolute', top: '120%', right: 0, width: '220px',
+                                        background: 'var(--bg-card)', border: '1px solid var(--border)',
+                                        borderRadius: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+                                        zIndex: 100, overflow: 'hidden', animation: 'fadeInScale 0.2s ease-out'
+                                    }}>
+                                        <div style={{ padding: '16px', borderBottom: '1px solid var(--border)', background: 'rgba(99, 102, 241, 0.05)' }}>
+                                            <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis' }}>{profile?.email || user.email}</p>
+                                            <p style={{ fontSize: '9px', fontWeight: 800, color: 'var(--accent)', margin: '4px 0 0', textTransform: 'uppercase' }}>Administrator Account</p>
+                                        </div>
+
+                                        <div style={{ padding: '8px' }}>
+                                            <button
+                                                onClick={() => handleModuleSwitch('profile')}
+                                                style={{ width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+                                            >
+                                                <Icons.User style={{ width: '16px' }} /> View Profile
+                                            </button>
+
+                                            <div style={{ margin: '4px 0', height: '1px', background: 'var(--border)' }} />
+
+                                            <button
+                                                onClick={toggleTheme}
+                                                style={{ width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', color: 'var(--text-secondary)', fontSize: '12px', fontWeight: 600, cursor: 'pointer', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+                                            >
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                                    {theme === 'dark' ? <Icons.Sun style={{ width: '16px' }} /> : <Icons.Moon style={{ width: '16px' }} />}
+                                                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                                                </div>
+                                                <span style={{ fontSize: '10px', opacity: 0.5 }}>{theme === 'dark' ? '🌞' : '🌙'}</span>
+                                            </button>
+
+                                            <button
+                                                onClick={handleLogout}
+                                                style={{ width: '100%', padding: '10px 12px', display: 'flex', alignItems: 'center', gap: '12px', background: 'transparent', border: 'none', color: '#ef4444', fontSize: '12px', fontWeight: 700, cursor: 'pointer', borderRadius: '8px', textAlign: 'left', transition: 'background 0.2s' }}
+                                            >
+                                                <Icons.Logout style={{ width: '16px' }} /> Sign Out
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </header>
 
-                    <div className="module-content">
+                    <div className="module-content" style={{ padding: '32px' }}>
+                        {activeModule === 'profile' && <AdminProfileView profile={profile} />}
                         {activeModule === 'live_discover' && <LiveMatchDiscover />}
-                        {activeModule === 'manual_add' && <ManualMatchAdd onCreated={() => setActiveModule('in_play')} />}
+                        {activeModule === 'manual_add' && <ManualMatchAdd onCreated={() => handleModuleSwitch('in_play')} />}
                         {activeModule === 'in_play' && <InPlayManagement />}
                         {activeModule === 'sub_admins' && <SubAdminManagement />}
                     </div>
                 </main>
-            </div>
 
-            <style jsx>{`
-                @media (min-width: 1025px) {
-                    .hide-mobile { display: block !important; }
-                }
-                @media (max-width: 1024px) {
-                    .hide-mobile { display: none !important; }
-                }
-            `}</style>
-        </AuthGuard>
+                <style jsx global>{`
+                    .dashboard-root { min-height: 100vh; background: var(--bg); color: var(--text-primary); }
+                    .dashboard-main { transition: margin-left 0.3s ease; min-height: 100vh; display: flex; flex-direction: column; flex: 1; }
+                    .sidebar-toggle-btn { display: none; background: none; border: none; color: var(--text-primary); cursor: pointer; padding: 8px; }
+                    .collapse-btn { background: none; border: none; color: var(--text-muted); padding: 8px; cursor: pointer; border-radius: 8px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+                    .collapse-btn:hover { background: var(--bg-body); color: var(--accent); }
+                    
+                    @keyframes fadeInScale {
+                        from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+                        to { opacity: 1; transform: scale(1) translateY(0); }
+                    }
+
+                    @media (max-width: 768px) {
+                        .dashboard-main { margin-left: 0 !important; }
+                        .sidebar-toggle-btn { display: block; }
+                        .collapse-btn { display: none; }
+                        .hide-mobile { display: none; }
+                        .dashboard-nav { padding: 0 16px !important; }
+                        .module-container { padding: 20px 16px !important; }
+                    }
+                `}</style>
+            </div>
+        </AuthGuard >
     );
 }

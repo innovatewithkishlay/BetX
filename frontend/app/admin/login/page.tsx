@@ -197,7 +197,7 @@ export default function AdminLoginPage() {
                         <input
                             name="email"
                             type="email"
-                            placeholder="admin@betx.com"
+                            placeholder="admin@system.com"
                             value={form.email}
                             onChange={handleChange}
                             onFocus={() => setFocusedField('email')}

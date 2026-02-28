@@ -23,16 +23,26 @@ interface Match {
 }
 
 // ─── Sidebar Component ──────────────────────────────
-function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose }: { activeModule: string, setActiveModule: (m: string) => void, collapsed: boolean, onClose?: () => void }) {
+function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose, userRole }: { activeModule: string, setActiveModule: (m: string) => void, collapsed: boolean, onClose?: () => void, userRole: string }) {
     const sections = [
         {
             title: 'MATCH MANAGEMENT',
             items: [
                 { id: 'live_discover', label: 'Match Discovery', icon: <Icons.Search /> },
+                { id: 'manual_add', label: 'Manual Add', icon: <Icons.Plus /> },
                 { id: 'in_play', label: 'In-Play Management', icon: <Icons.Games /> },
+            ]
+        },
+        {
+            title: 'SYSTEM MANAGEMENT',
+            roles: ['admin'], // Only for Super Admin
+            items: [
+                { id: 'sub_admins', label: 'Sub-Admin Management', icon: <Icons.Plus /> }, // Using Plus for now, can swap later
             ]
         }
     ];
+
+    const filteredSections = sections.filter(s => !s.roles || s.roles.includes(userRole));
 
     return (
         <aside className="dashboard-sidebar" style={{
@@ -43,17 +53,17 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose }: { a
             boxShadow: '4px 0 12px rgba(0,0,0,0.02)',
             transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
         }}>
-            <div style={{ padding: collapsed ? '24px 0' : '24px 32px', borderBottom: '1px solid var(--border)', textAlign: 'center', overflow: 'hidden' }}>
+            <div style={{ padding: collapsed ? '20px 0' : '20px 24px', borderBottom: '1px solid var(--border)', textAlign: 'center', overflow: 'hidden' }}>
                 <span onClick={() => setActiveModule('in_play')} style={{
-                    fontWeight: 900, fontSize: collapsed ? '16px' : '18px', color: 'var(--accent)', letterSpacing: '-0.04em', cursor: 'pointer', whiteSpace: 'nowrap'
+                    fontWeight: 900, fontSize: collapsed ? '14px' : '16px', color: 'var(--accent)', letterSpacing: '-0.04em', cursor: 'pointer', whiteSpace: 'nowrap'
                 }}>
                     {collapsed ? 'BX' : 'BetX Admin'}
                 </span>
             </div>
             <div style={{ flex: 1, overflowY: 'auto', padding: collapsed ? '24px 8px' : '24px 16px', overflowX: 'hidden' }}>
-                {sections.map((section) => (
-                    <div key={section.title} style={{ marginBottom: '28px' }}>
-                        {!collapsed && <p style={{ fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '12px', paddingLeft: '16px' }}>{section.title}</p>}
+                {filteredSections.map((section) => (
+                    <div key={section.title} style={{ marginBottom: '24px' }}>
+                        {!collapsed && <p style={{ fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '10px', paddingLeft: '16px' }}>{section.title}</p>}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             {section.items.map((item) => (
                                 <button key={item.id} onClick={() => { setActiveModule(item.id); onClose?.(); }} title={collapsed ? item.label : ''} style={{
@@ -61,7 +71,7 @@ function AdminSidebar({ activeModule, setActiveModule, collapsed, onClose }: { a
                                     padding: collapsed ? '12px 0' : '10px 16px', borderRadius: '8px', border: 'none',
                                     background: activeModule === item.id ? 'var(--accent)' : 'transparent',
                                     color: activeModule === item.id ? 'white' : 'var(--text-secondary)',
-                                    fontSize: '13px', fontWeight: activeModule === item.id ? 700 : 500, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', width: '100%'
+                                    fontSize: '12px', fontWeight: activeModule === item.id ? 700 : 500, cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left', width: '100%'
                                 }}>
                                     <span style={{ opacity: activeModule === item.id ? 1 : 0.7, display: 'flex' }}>{item.icon}</span>
                                     {!collapsed && <span>{item.label}</span>}
@@ -111,47 +121,47 @@ function LiveMatchDiscover() {
 
     return (
         <div className="smooth-transition">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Match Discovery</h1>
-                    <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Sync Live Games from API</div>
+                    <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Match Discovery</h1>
+                    <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Sync Live Games from API</div>
                 </div>
                 <button onClick={fetchMatches} style={{
-                    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '11px', cursor: 'pointer'
+                    display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '10px', cursor: 'pointer'
                 }}>
                     <Icons.Refresh /> Refresh List
                 </button>
             </header>
 
             <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '13px' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
                     <thead>
                         <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
-                            <th style={{ padding: '16px 24px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>Teams</th>
-                            <th style={{ padding: '16px 24px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>Status</th>
-                            <th style={{ padding: '16px 24px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase' }}>Start Time</th>
-                            <th style={{ padding: '16px 24px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
+                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Teams</th>
+                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
+                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Start Time</th>
+                            <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase', textAlign: 'right' }}>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {loading ? (
                             Array(5).fill(0).map((_, i) => (
-                                <tr key={i}><td colSpan={4} style={{ padding: '24px', textAlign: 'center', opacity: 0.3 }}>Loading...</td></tr>
+                                <tr key={i}><td colSpan={4} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>Loading...</td></tr>
                             ))
                         ) : (
                             matches.map((m) => (
                                 <tr key={m.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                                    <td style={{ padding: '16px 24px', fontWeight: 700 }}>{m.name}</td>
-                                    <td style={{ padding: '16px 24px' }}>
-                                        <span style={{ padding: '4px 8px', borderRadius: '4px', background: m.status === 'Live' ? '#ef4444' : '#3b82f6', color: 'white', fontSize: '10px', fontWeight: 800 }}>{m.status}</span>
+                                    <td style={{ padding: '12px 20px', fontWeight: 700 }}>{m.name}</td>
+                                    <td style={{ padding: '12px 20px' }}>
+                                        <span style={{ padding: '3px 6px', borderRadius: '4px', background: m.status === 'Live' ? '#ef4444' : '#3b82f6', color: 'white', fontSize: '9px', fontWeight: 800 }}>{m.status}</span>
                                     </td>
-                                    <td style={{ padding: '16px 24px', color: 'var(--text-secondary)' }}>{new Date(m.startTime).toLocaleString()}</td>
-                                    <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                                    <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{new Date(m.startTime).toLocaleString()}</td>
+                                    <td style={{ padding: '12px 20px', textAlign: 'right' }}>
                                         <button
                                             disabled={importing === m.id}
                                             onClick={() => handleImport(m)}
                                             style={{
-                                                padding: '8px 16px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '11px', cursor: 'pointer', transition: 'all 0.2s', opacity: importing === m.id ? 0.5 : 1
+                                                padding: '6px 12px', background: '#22c55e', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '10px', cursor: 'pointer', transition: 'all 0.2s', opacity: importing === m.id ? 0.5 : 1
                                             }}
                                         >
                                             {importing === m.id ? 'Importing...' : 'Import'}
@@ -162,6 +172,286 @@ function LiveMatchDiscover() {
                         )}
                     </tbody>
                 </table>
+            </div>
+        </div>
+    );
+}
+
+// ─── Module: Manual Match Add ────────────────────────
+function ManualMatchAdd({ onCreated }: { onCreated: () => void }) {
+    const [formData, setFormData] = useState({
+        name: '',
+        teamA: '',
+        teamB: '',
+        startTime: ''
+    });
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState<string | null>(null);
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const res = await api.post('/api/admin/cricket/manual-create', formData);
+            if (res.data.success) {
+                setSuccess(res.data.matchId);
+                setFormData({ name: '', teamA: '', teamB: '', startTime: '' });
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to create match');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (success) {
+        return (
+            <div className="smooth-transition card" style={{ maxWidth: '600px', padding: '48px', textAlign: 'center' }}>
+                <div style={{ color: '#22c55e', marginBottom: '16px' }}>
+                    <Icons.Plus style={{ width: '48px', height: '48px' }} />
+                </div>
+                <h1 style={{ fontSize: '24px', fontWeight: 900, marginBottom: '8px' }}>Match Created!</h1>
+                <p style={{ color: 'var(--text-secondary)', marginBottom: '32px', fontSize: '14px' }}>
+                    Match has been successfully added to In-Play Management.
+                </p>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button
+                        onClick={() => { setSuccess(null); }}
+                        style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid var(--border)', background: 'transparent', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                        Create Another
+                    </button>
+                    <button
+                        onClick={onCreated}
+                        style={{ padding: '12px 24px', borderRadius: '8px', border: 'none', background: 'var(--accent)', color: 'white', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                        Manage Odds Now
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="smooth-transition" style={{ maxWidth: '600px' }}>
+            <header style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Manual Match Add</h1>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Create a new match manually</div>
+            </header>
+
+            <div className="card" style={{ padding: '24px' }}>
+                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>MATCH NAME</label>
+                        <input
+                            type="text"
+                            placeholder="e.g. India vs Pakistan"
+                            required
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}
+                        />
+                    </div>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>TEAM A</label>
+                            <input
+                                type="text"
+                                placeholder="Team A Name"
+                                required
+                                value={formData.teamA}
+                                onChange={(e) => setFormData({ ...formData, teamA: e.target.value })}
+                                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}
+                            />
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>TEAM B</label>
+                            <input
+                                type="text"
+                                placeholder="Team B Name"
+                                required
+                                value={formData.teamB}
+                                onChange={(e) => setFormData({ ...formData, teamB: e.target.value })}
+                                style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}
+                            />
+                        </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>START TIME</label>
+                        <input
+                            type="datetime-local"
+                            required
+                            value={formData.startTime}
+                            onChange={(e) => setFormData({ ...formData, startTime: e.target.value })}
+                            style={{
+                                padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)',
+                                background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px',
+                                colorScheme: 'dark' // Ensures the native date picker is readable in dark mode
+                            }}
+                        />
+                    </div>
+
+                    <button
+                        type="submit"
+                        disabled={loading}
+                        style={{
+                            marginTop: '8px', padding: '12px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', fontSize: '13px'
+                        }}
+                    >
+                        {loading ? 'Creating...' : 'Create Match'}
+                    </button>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+// ─── Module: Sub-Admin Management ─────────────────────
+function SubAdminManagement() {
+    const [subAdmins, setSubAdmins] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '' });
+    const [generatedCreds, setGeneratedCreds] = useState<any | null>(null);
+
+    const fetchSubAdmins = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/api/admin/system/subadmins');
+            if (res.data.success) setSubAdmins(res.data.data);
+        } catch (err) {
+            console.error('Fetch sub-admins failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => { fetchSubAdmins(); }, []);
+
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setCreating(true);
+        try {
+            const res = await api.post('/api/admin/system/subadmin/create', formData);
+            if (res.data.success) {
+                setGeneratedCreds(res.data.data);
+                setFormData({ name: '', email: '' });
+                fetchSubAdmins();
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Failed to create sub-admin');
+        } finally {
+            setCreating(false);
+        }
+    };
+
+    return (
+        <div className="smooth-transition">
+            <header style={{ marginBottom: '24px' }}>
+                <h1 style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Sub-Admin Management</h1>
+                <div style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: 600 }}>Create and manage staff accounts</div>
+            </header>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'minmax(300px, 1fr) 2fr', gap: '24px' }}>
+                {/* Create Form */}
+                <div>
+                    <div className="card" style={{ padding: '24px' }}>
+                        <h2 style={{ fontSize: '14px', fontWeight: 900, marginBottom: '20px' }}>CREATE NEW SUB-ADMIN</h2>
+                        <form onSubmit={handleCreate} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>NAME</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.name}
+                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                <label style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>EMAIL</label>
+                                <input
+                                    type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                    style={{ padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)', fontWeight: 600, fontSize: '13px' }}
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={creating}
+                                style={{
+                                    marginTop: '8px', padding: '12px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 800, cursor: 'pointer', opacity: creating ? 0.7 : 1, fontSize: '12px'
+                                }}
+                            >
+                                {creating ? 'Generating Account...' : 'Generate Sub-Admin'}
+                            </button>
+                        </form>
+
+                        {generatedCreds && (
+                            <div style={{ marginTop: '24px', padding: '16px', background: 'rgba(34, 197, 94, 0.1)', border: '1px solid #22c55e', borderRadius: '8px' }}>
+                                <p style={{ fontSize: '11px', fontWeight: 800, color: '#22c55e', margin: '0 0 12px 0' }}>SUCCESS! COPY CREDENTIALS:</p>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                    <div>
+                                        <p style={{ fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', margin: 0 }}>EMAIL</p>
+                                        <p style={{ fontSize: '12px', fontWeight: 700, margin: 0 }}>{generatedCreds.email}</p>
+                                    </div>
+                                    <div>
+                                        <p style={{ fontSize: '8px', fontWeight: 800, color: 'var(--text-muted)', margin: 0 }}>PASSWORD</p>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <code style={{ fontSize: '14px', fontWeight: 900, color: 'var(--accent)' }}>{generatedCreds.password}</code>
+                                            <button
+                                                onClick={() => navigator.clipboard.writeText(generatedCreds.password)}
+                                                style={{ padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border)', background: 'transparent', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}
+                                            >
+                                                COPY
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setGeneratedCreds(null)}
+                                        style={{ marginTop: '8px', padding: '6px', background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '10px', fontWeight: 800, cursor: 'pointer' }}
+                                    >
+                                        I've saved it
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* List Table */}
+                <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '12px' }}>
+                        <thead>
+                            <tr style={{ background: 'var(--bg-body)', borderBottom: '1px solid var(--border)' }}>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Sub-Admin</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Email</th>
+                                <th style={{ padding: '12px 20px', fontWeight: 700, color: 'var(--text-muted)', fontSize: '9px', textTransform: 'uppercase' }}>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {loading ? (
+                                <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>Syncing Accounts...</td></tr>
+                            ) : subAdmins.length === 0 ? (
+                                <tr><td colSpan={3} style={{ padding: '20px', textAlign: 'center', opacity: 0.3 }}>No sub-admins found</td></tr>
+                            ) : (
+                                subAdmins.map((sub: any) => (
+                                    <tr key={sub.id} style={{ borderBottom: '1px solid var(--border)' }}>
+                                        <td style={{ padding: '12px 20px', fontWeight: 700 }}>{sub.name}</td>
+                                        <td style={{ padding: '12px 20px', color: 'var(--text-secondary)' }}>{sub.email}</td>
+                                        <td style={{ padding: '12px 20px' }}>
+                                            <span style={{ padding: '3px 8px', borderRadius: '4px', background: '#22c55e', color: 'white', fontSize: '8px', fontWeight: 900 }}>ACTIVE</span>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     );
@@ -232,6 +522,8 @@ function InPlayManagement() {
 // Sub-component for Markets and Odds
 function MarketsAndOddsView({ matchId }: { matchId: string }) {
     const [markets, setMarkets] = useState<any[]>([]);
+    const [addingSelection, setAddingSelection] = useState<string | null>(null);
+    const [newSelection, setNewSelection] = useState({ name: '', odd: 1.90 });
 
     useEffect(() => {
         const unsubscribe = onSnapshot(collection(db, 'matches', matchId, 'markets'), (mSnap) => {
@@ -242,61 +534,128 @@ function MarketsAndOddsView({ matchId }: { matchId: string }) {
 
     const handleAddMarket = async (type: string) => {
         try {
-            const marketId = `${type}_${Date.now()}`;
-            const marketRef = doc(db, 'matches', matchId, 'markets', marketId);
-            await updateDoc(marketRef, {
-                id: marketId,
-                type: type,
-                status: 'open',
-                createdAt: serverTimestamp()
+            const res = await api.post('/api/admin/cricket/market/add', { matchId, type });
+            if (res.data.success) {
+                // Real-time listener handles the update
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Add market failed');
+        }
+    };
+
+    const handleAddSelection = async (marketId: string) => {
+        if (!newSelection.name) return;
+        try {
+            const res = await api.post('/api/admin/cricket/selection/add', {
+                matchId,
+                marketId,
+                name: newSelection.name,
+                initialOdd: newSelection.odd
             });
-            // Note: In a real app, you'd also create default selections here
-        } catch (err) {
-            console.error('Add market failed');
+            if (res.data.success) {
+                setAddingSelection(null);
+                setNewSelection({ name: '', odd: 1.90 });
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Add selection failed');
+        }
+    };
+
+    const handleSettle = async (marketId: string, winnerId: string) => {
+        if (!window.confirm('Are you sure you want to settle this market? This action cannot be undone.')) return;
+        try {
+            const res = await api.post('/api/admin/cricket/market/settle', {
+                matchId,
+                marketId,
+                winnerSelectionId: winnerId
+            });
+            if (res.data.success) {
+                alert('Market settled successfully');
+            }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Settle failed');
+        }
+    };
+
+    const getStatusStyle = (status: string) => {
+        switch (status) {
+            case 'open': return { bg: '#22c55e', label: 'OPEN' };
+            case 'suspended': return { bg: '#eab308', label: 'SUSPENDED' };
+            case 'closed': return { bg: '#ef4444', label: 'CLOSED' };
+            default: return { bg: '#64748b', label: status.toUpperCase() };
         }
     };
 
     return (
         <>
-            <div className="card" style={{ padding: '16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--text-muted)', width: '100%', marginBottom: '8px' }}>QUICK ADD MARKET</span>
-                <button onClick={() => handleAddMarket('toss')} style={{ padding: '6px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>+ Toss</button>
-                <button onClick={() => handleAddMarket('session')} style={{ padding: '6px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>+ Session</button>
-                <button onClick={() => handleAddMarket('fancy')} style={{ padding: '6px 12px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>+ Fancy</button>
+            <div className="card" style={{ padding: '12px 16px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)', width: '100%', marginBottom: '4px' }}>QUICK ADD MARKET</span>
+                <button onClick={() => handleAddMarket('toss')} style={{ padding: '5px 10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>+ Toss</button>
+                <button onClick={() => handleAddMarket('session')} style={{ padding: '5px 10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>+ Session</button>
+                <button onClick={() => handleAddMarket('fancy')} style={{ padding: '5px 10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>+ Fancy</button>
+                <button onClick={() => handleAddMarket('lambi')} style={{ padding: '5px 10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '9px', fontWeight: 700, cursor: 'pointer' }}>+ Lambi</button>
             </div>
 
-            {markets.map(market => (
-                <div key={market.id} className="card" style={{ padding: '24px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                        <div>
-                            <span style={{ fontSize: '10px', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Market</span>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 900, color: 'var(--accent)' }}>{market.type.toUpperCase()}</h3>
+            {markets.map(market => {
+                const status = getStatusStyle(market.status);
+                return (
+                    <div key={market.id} className="card" style={{ padding: '20px', position: 'relative', borderLeft: `3px solid ${status.bg}` }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                            <div>
+                                <span style={{ fontSize: '8px', fontWeight: 900, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Market</span>
+                                <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 900, color: 'var(--accent)' }}>{market.type.toUpperCase()}</h3>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <span style={{ padding: '3px 8px', borderRadius: '20px', background: status.bg, color: 'white', fontSize: '9px', fontWeight: 900 }}>{status.label}</span>
+                                {market.status !== 'closed' && (
+                                    <button
+                                        onClick={() => setAddingSelection(addingSelection === market.id ? null : market.id)}
+                                        style={{ padding: '5px 10px', borderRadius: '6px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontSize: '9px', fontWeight: 800, cursor: 'pointer' }}
+                                    >
+                                        + Add Run
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                            <select
-                                value={market.status}
-                                onChange={async (e) => await updateDoc(doc(db, 'matches', matchId, 'markets', market.id), { status: e.target.value })}
-                                style={{
-                                    padding: '6px 12px', borderRadius: '6px', border: '1px solid var(--border)',
-                                    background: market.status === 'open' ? '#22c55e' : market.status === 'suspended' ? '#ef4444' : '#64748b',
-                                    color: 'white', fontWeight: 800, fontSize: '10px', cursor: 'pointer'
-                                }}
-                            >
-                                <option value="open">OPEN</option>
-                                <option value="suspended">SUSPENDED</option>
-                                <option value="closed">CLOSED</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <SelectionsList matchId={matchId} marketId={market.id} />
-                </div>
-            ))}
+                        {addingSelection === market.id && (
+                            <div style={{ marginBottom: '20px', padding: '16px', background: 'var(--bg-body)', borderRadius: '8px', display: 'flex', gap: '12px' }}>
+                                <input
+                                    placeholder="Outcome (e.g. 150 Runs)"
+                                    value={newSelection.name}
+                                    onChange={e => setNewSelection({ ...newSelection, name: e.target.value })}
+                                    style={{ flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
+                                />
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={newSelection.odd}
+                                    onChange={e => setNewSelection({ ...newSelection, odd: Number(e.target.value) })}
+                                    style={{ width: '80px', padding: '8px', borderRadius: '6px', border: '1px solid var(--border)', fontSize: '12px' }}
+                                />
+                                <button
+                                    onClick={() => handleAddSelection(market.id)}
+                                    style={{ padding: '8px 16px', background: 'var(--accent)', color: 'white', border: 'none', borderRadius: '6px', fontSize: '11px', fontWeight: 800, cursor: 'pointer' }}
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        )}
+
+                        <SelectionsList
+                            matchId={matchId}
+                            marketId={market.id}
+                            marketStatus={market.status}
+                            onSettle={(winnerId) => handleSettle(market.id, winnerId)}
+                        />
+                    </div>
+                );
+            })}
         </>
     );
 }
 
-function SelectionsList({ matchId, marketId }: { matchId: string, marketId: string }) {
+function SelectionsList({ matchId, marketId, marketStatus, onSettle }: { matchId: string, marketId: string, marketStatus: string, onSettle: (winnerId: string) => void }) {
     const [selections, setSelections] = useState<any[]>([]);
     const { updateOddDebounced, updating } = useAdminOdds();
 
@@ -308,40 +667,46 @@ function SelectionsList({ matchId, marketId }: { matchId: string, marketId: stri
     }, [matchId, marketId]);
 
     const handleDelta = (id: string, name: string, current: number, delta: number) => {
+        if (marketStatus === 'closed') return;
         const next = Number((current + delta).toFixed(2));
         updateOddDebounced(matchId, marketId, id, next);
     };
 
     return (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '16px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '12px' }}>
             {selections.map(selection => (
                 <div key={selection.id} style={{
-                    padding: '20px', borderRadius: '12px', background: 'var(--bg-body)', border: '1px solid var(--border)',
-                    display: 'flex', flexDirection: 'column', gap: '16px'
+                    padding: '16px', borderRadius: '12px', background: 'var(--bg-body)', border: '1px solid var(--border)',
+                    display: 'flex', flexDirection: 'column', gap: '12px', opacity: marketStatus === 'closed' ? 0.7 : 1,
+                    position: 'relative', overflow: 'hidden'
                 }}>
+                    {selection.status === 'won' && <div style={{ position: 'absolute', top: 0, right: 0, background: '#22c55e', color: 'white', padding: '3px 10px', fontSize: '9px', fontWeight: 900 }}>WINNER</div>}
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontWeight: 900, fontSize: '14px' }}>{selection.name}</span>
-                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: selection.status === 'active' ? '#22c55e' : '#ef4444' }}></div>
+                        <span style={{ fontWeight: 900, fontSize: '12px' }}>{selection.name}</span>
+                        <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: selection.status === 'active' || selection.status === 'won' ? '#22c55e' : '#ef4444' }}></div>
                     </div>
 
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                         <button
+                            disabled={marketStatus === 'closed'}
                             onClick={() => handleDelta(selection.id, selection.name, selection.odd, -0.01)}
-                            style={{ width: '44px', height: '44px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontWeight: 900, fontSize: '18px', cursor: 'pointer' }}
+                            style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontWeight: 900, fontSize: '14px', cursor: marketStatus === 'closed' ? 'not-allowed' : 'pointer' }}
                         >
                             -
                         </button>
 
                         <div style={{ flex: 1, textAlign: 'center' }}>
-                            <div style={{ fontSize: '24px', fontWeight: 950, color: updating === selection.id ? 'var(--accent)' : 'inherit', transition: 'all 0.2s', transform: updating === selection.id ? 'scale(1.1)' : 'scale(1)' }}>
+                            <div style={{ fontSize: '20px', fontWeight: 950, color: updating === selection.id ? 'var(--accent)' : 'inherit', transition: 'all 0.2s', transform: updating === selection.id ? 'scale(1.1)' : 'scale(1)' }}>
                                 {selection.odd?.toFixed(2) || '0.00'}
                             </div>
-                            <div style={{ fontSize: '9px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '4px' }}>ODD PRICE</div>
+                            <div style={{ fontSize: '8px', fontWeight: 700, color: 'var(--text-muted)', marginTop: '2px' }}>ODD PRICE</div>
                         </div>
 
                         <button
+                            disabled={marketStatus === 'closed'}
                             onClick={() => handleDelta(selection.id, selection.name, selection.odd, 0.01)}
-                            style={{ width: '44px', height: '44px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontWeight: 900, fontSize: '18px', cursor: 'pointer' }}
+                            style={{ width: '36px', height: '36px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-card)', fontWeight: 900, fontSize: '14px', cursor: marketStatus === 'closed' ? 'not-allowed' : 'pointer' }}
                         >
                             +
                         </button>
@@ -351,24 +716,27 @@ function SelectionsList({ matchId, marketId }: { matchId: string, marketId: stri
                         <input
                             type="number"
                             step="0.01"
+                            disabled={marketStatus === 'closed'}
                             value={selection.odd}
                             onChange={(e) => updateOddDebounced(matchId, marketId, selection.id, Number(e.target.value))}
                             style={{
-                                padding: '10px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)',
-                                fontSize: '13px', fontWeight: 800, textAlign: 'center', width: '100%', boxSizing: 'border-box'
+                                padding: '8px', borderRadius: '8px', border: '1px solid var(--border)', background: 'var(--bg-input)', color: 'var(--text-primary)',
+                                fontSize: '12px', fontWeight: 800, textAlign: 'center', width: '100%', boxSizing: 'border-box'
                             }}
                         />
-                        <button
-                            onClick={async () => await updateDoc(doc(db, 'matches', matchId, 'markets', marketId, 'selections', selection.id), { status: selection.status === 'active' ? 'suspended' : 'active' })}
-                            style={{
-                                padding: '10px', borderRadius: '8px', border: '1px solid var(--border)',
-                                background: selection.status === 'active' ? 'transparent' : '#ef4444',
-                                color: selection.status === 'active' ? 'var(--text-secondary)' : 'white',
-                                fontSize: '11px', fontWeight: 800, cursor: 'pointer'
-                            }}
-                        >
-                            {selection.status === 'active' ? 'SUS' : 'ACT'}
-                        </button>
+                        {marketStatus !== 'closed' ? (
+                            <button
+                                onClick={() => onSettle(selection.id)}
+                                style={{
+                                    padding: '8px', borderRadius: '8px', background: 'var(--accent)', color: 'white',
+                                    border: 'none', fontSize: '10px', fontWeight: 800, cursor: 'pointer'
+                                }}
+                            >
+                                SETTLE
+                            </button>
+                        ) : (
+                            <div style={{ padding: '8px', fontSize: '9px', fontWeight: 800, color: 'var(--text-muted)' }}>{selection.status.toUpperCase()}</div>
+                        )}
                     </div>
                 </div>
             ))}
@@ -384,7 +752,8 @@ export default function AdminDashboard() {
     const [activeModule, setActiveModule] = useState('in_play');
 
     useEffect(() => {
-        if (!authLoading && (!user || user.role !== 'admin')) {
+        const allowedRoles = ['admin', 'subadmin'];
+        if (!authLoading && (!user || !allowedRoles.includes(user.role || ''))) {
             router.push('/admin/login');
         }
     }, [user, authLoading, router]);
@@ -398,27 +767,30 @@ export default function AdminDashboard() {
                     activeModule={activeModule}
                     setActiveModule={setActiveModule}
                     collapsed={sidebarCollapsed}
+                    userRole={user.role || 'subadmin'}
                 />
 
                 <main style={{ flex: 1, minWidth: 0, padding: '32px 40px' }}>
                     <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
-                        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', border: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', borderRadius: '8px', border: '1px solid var(--border)' }}>
+                        <button onClick={() => setSidebarCollapsed(!sidebarCollapsed)} style={{ background: 'none', padding: '8px', cursor: 'pointer', color: 'var(--text-secondary)', display: 'flex', borderRadius: '8px', border: '1px solid var(--border)' }}>
                             <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h7" /></svg>
                         </button>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                             <div style={{ textAlign: 'right' }}>
-                                <p style={{ margin: 0, fontSize: '13px', fontWeight: 800 }}>{user.email.split('@')[0].toUpperCase()}</p>
-                                <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)', fontWeight: 600 }}>Administrator</p>
+                                <p style={{ margin: 0, fontSize: '12px', fontWeight: 800 }}>{(user.email || 'Admin').split('@')[0].toUpperCase()}</p>
+                                <p style={{ margin: 0, fontSize: '9px', color: 'var(--text-muted)', fontWeight: 600 }}>Administrator</p>
                             </div>
-                            <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '16px' }}>
-                                {user.email[0].toUpperCase()}
+                            <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '14px' }}>
+                                {(user.email?.[0] || 'A').toUpperCase()}
                             </div>
                         </div>
                     </header>
 
                     <div className="module-content">
                         {activeModule === 'live_discover' && <LiveMatchDiscover />}
+                        {activeModule === 'manual_add' && <ManualMatchAdd onCreated={() => setActiveModule('in_play')} />}
                         {activeModule === 'in_play' && <InPlayManagement />}
+                        {activeModule === 'sub_admins' && <SubAdminManagement />}
                     </div>
                 </main>
             </div>

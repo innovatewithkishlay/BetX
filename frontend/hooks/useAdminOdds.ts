@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-import { db } from '@/lib/firebase';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import api from '@/lib/axios';
 
 export function useAdminOdds() {
     const [updating, setUpdating] = useState<string | null>(null);
@@ -23,10 +22,11 @@ export function useAdminOdds() {
         debounceTimers.current[path] = setTimeout(async () => {
             try {
                 setUpdating(selectionId);
-                const selectionRef = doc(db, 'matches', matchId, 'markets', marketId, 'selections', selectionId);
-                await updateDoc(selectionRef, {
-                    odd: newOdd,
-                    lastUpdatedAt: serverTimestamp()
+                await api.post('/api/admin/cricket/selection/update-odd', {
+                    matchId,
+                    marketId,
+                    selectionId,
+                    newOdd
                 });
             } catch (error) {
                 console.error('Failed to update odd:', error);

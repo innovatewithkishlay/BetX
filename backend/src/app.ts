@@ -28,6 +28,12 @@ app.use(
     })
 );
 
+// ─── Logging ──────────────────────────────────────────
+app.use((req, _res, next) => {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    next();
+});
+
 // ─── Body Parsing ─────────────────────────────────────
 app.use(express.json({ limit: '10kb' }));
 

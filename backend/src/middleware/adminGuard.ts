@@ -31,8 +31,9 @@ export const adminGuard = async (
 
         const data = userDoc.data()!;
 
-        // Strict role check: must be exactly 'admin'
-        if (data.role !== 'admin') {
+        // Allow both admin and subadmin for general admin routes
+        const allowedRoles = ['admin', 'subadmin'];
+        if (!allowedRoles.includes(data.role)) {
             res.status(403).json({ success: false, message: 'Forbidden: Insufficient role' });
             return;
         }
@@ -54,4 +55,23 @@ export const adminGuard = async (
         console.error('Admin Guard Error:', err);
         res.status(500).json({ success: false, message: 'Internal server error' });
     }
+};
+
+/**
+ * Strict guard for Super Admin (role: 'admin') only.
+ * Used for system management and sub-admin creation.
+ */
+export const superAdminGuard = async (
+    req: AdminRequest,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    // First run the general adminGuard
+    await adminGuard(req, res, async () => {
+        if (req.admin?.role !== 'admin') {
+            res.status(403).json({ success: false, message: 'Forbidden: Super Admin access required' });
+            return;
+        }
+        next();
+    });
 };
